@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="'Sistema KODIE - ' + ${pessoa.nome}">Sistema KODIE</title>
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+
+<header class="topo">
+    <h1>Sistema KODIE</h1>
+    <p><a th:href="@{/pessoas/pagina}">&larr; Voltar para o cadastro</a></p>
+</header>
+
+<main class="conteudo">
+
+    <p th:if="${mensagem}" th:text="${mensagem}" class="aviso ok"></p>
+
+    <section class="cartao">
+        <h2 th:text="${pessoa.nome}">Nome da pessoa</h2>
+
+        <dl class="ficha-dados">
+            <div>
+                <dt>Cargo</dt>
+                <dd th:text="${pessoa.cargo}">Cargo</dd>
+            </div>
+            <div>
+                <dt>CPF</dt>
+                <dd th:text="${pessoa.cpf}">00000000000</dd>
+            </div>
+            <div>
+                <dt>E-mail</dt>
+                <dd th:text="${pessoa.email}">email</dd>
+            </div>
+            <div>
+                <dt>Vinculo</dt>
+                <dd>
+                    <span class="etiqueta"
+                          th:classappend="${pessoa.tipoVinculo.name() == 'CLT'} ? 'clt' : ''"
+                          th:text="${pessoa.tipoVinculo.descricao}">Vinculo</span>
+                </dd>
+            </div>
+            <div>
+                <dt>Situacao</dt>
+                <dd>
+                    <span class="etiqueta"
+                          th:classappend="${#strings.toLowerCase(pessoa.situacao.name())}"
+                          th:text="${pessoa.situacao.descricao}">Situacao</span>
+                </dd>
+            </div>
+            <div>
+                <dt>Data de entrada</dt>
+                <dd th:text="${#temporals.format(pessoa.dataEntrada, 'dd/MM/yyyy')}">00/00/0000</dd>
+            </div>
+            <div th:if="${pessoa.dataSaida != null}">
+                <dt>Data de saida</dt>
+                <dd th:text="${#temporals.format(pessoa.dataSaida, 'dd/MM/yyyy')}">00/00/0000</dd>
+            </div>
+            <div>
+                <dt>Regra de ferias</dt>
+                <dd th:text="${pessoa.possuiRegraDeFerias()} ? 'Aplicavel (CLT)' : 'Nao aplicavel'">-</dd>
+            </div>
+        </dl>
+    </section>
+
+    <section class="cartao">
+        <h2>Registrar ocorrencia</h2>
+
+        <form th:action="@{/pessoas/pagina/{id}/ocorrencias(id=${pessoa.id})}"
+              th:object="${novaOcorrencia}" method="post">
+            <div class="campos">
+
+                <div>
+                    <label for="tipo">Tipo</label>
+                    <select id="tipo" th:field="*{tipo}">
+                        <option value="">Selecione</option>
+                        <option th:each="t : ${tiposOcorrencia}"
+                                th:value="${t}" th:text="${t.descricao}"></option>
+                    </select>
+                    <span class="erro" th:if="${#fields.hasErrors('tipo')}" th:errors="*{tipo}"></span>
+                </div>
+
+                <div>
+                    <label for="dataInicio">Data de inicio</label>
+                    <input type="date" id="dataInicio" th:field="*{dataInicio}">
+                    <span class="erro" th:if="${#fields.hasErrors('dataInicio')}" th:errors="*{dataInicio}"></span>
+                </div>
+
+                <div>
+                    <label for="dataFim">Data de fim</label>
+                    <input type="date" id="dataFim" th:field="*{dataFim}">
+                    <span class="erro" th:if="${#fields.hasErrors('dataFim')}" th:errors="*{dataFim}"></span>
+                </div>
+
+                <div>
+                    <label for="situacaoOcorrencia">Situacao</label>
+                    <select id="situacaoOcorrencia" th:field="*{situacao}">
+                        <option th:each="s : ${situacoesOcorrencia}"
+                                th:value="${s}" th:text="${s.descricao}"></option>
+                    </select>
+                    <span class="erro" th:if="${#fields.hasErrors('situacao')}" th:errors="*{situacao}"></span>
+                </div>
+
+                <div>
+                    <label for="observacao">Observacao</label>
+                    <input type="text" id="observacao" th:field="*{observacao}" placeholder="Opcional">
+                    <span class="erro" th:if="${#fields.hasErrors('observacao')}" th:errors="*{observacao}"></span>
+                </div>
+
+            </div>
+            <button type="submit">Registrar ocorrencia</button>
+        </form>
+    </section>
+
+    <section class="cartao">
+        <h2>Ocorrencias registradas</h2>
+
+        <p th:if="${#lists.isEmpty(ocorrencias)}" class="vazio">
+            Nenhuma ocorrencia registrada para esta pessoa.
+        </p>
+
+        <table th:unless="${#lists.isEmpty(ocorrencias)}">
+            <thead>
+            <tr>
+                <th>Tipo</th>
+                <th>Inicio</th>
+                <th>Fim</th>
+                <th>Dias</th>
+                <th>Situacao</th>
+                <th>Observacao</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="o : ${ocorrencias}">
+                <td th:text="${o.tipo.descricao}">Tipo</td>
+                <td th:text="${#temporals.format(o.dataInicio, 'dd/MM/yyyy')}">00/00/0000</td>
+                <td th:text="${#temporals.format(o.dataFim, 'dd/MM/yyyy')}">00/00/0000</td>
+                <td th:text="${o.totalDeDias}">0</td>
+                <td><span class="etiqueta" th:text="${o.situacao.descricao}">Situacao</span></td>
+                <td th:text="${o.observacao != null and !o.observacao.isBlank()} ? ${o.observacao} : '-'">-</td>
+                <td>
+                    <form th:action="@{/pessoas/pagina/{p}/ocorrencias/{o}/excluir(p=${pessoa.id},o=${o.id})}"
+                          method="post">
+                        <button type="submit" class="discreto">excluir</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+</main>
+</body>
+</html>
