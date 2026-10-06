@@ -37,8 +37,9 @@ com dados fictícios.
 Duas entidades, com relacionamento **um-para-muitos** unidirecional:
 
 ```
-Pessoa  1 ───────── N  Ocorrencia
-                       (FK pessoa_id, aceita nulo)
+                    ┌── N  Ocorrencia         (FK pessoa_id, aceita nulo)
+Pessoa  1 ──────────┤
+                    └── N  PeriodoAquisitivo  (FK pessoa_id, obrigatório)
 ```
 
 **Pessoa** é o cadastro central descrito na seção 2.1 do documento de decisões: uma única
@@ -79,12 +80,20 @@ montada pelo Service com `countByPessoaId` e entregue pronta ao template.
 | PUT | `/ocorrencias/{id}` | 200 · 404 · 400 |
 | DELETE | `/ocorrencias/{id}` | 204 · 404 |
 
+### Férias
+
+| Verbo | Caminho | Resposta |
+|---|---|---|
+| GET | `/ferias` | 200 · situação de todo o cadastro |
+| GET | `/ferias/pessoa/{id}` | 200 · 404 se a pessoa não existir |
+
 ### Páginas web
 
 | Caminho | Descrição |
 |---|---|
 | `/pessoas/pagina` | Lista de pessoas e formulário de cadastro |
-| `/pessoas/pagina/{id}` | Ficha individual com as ocorrências da pessoa |
+| `/pessoas/pagina/{id}` | Ficha individual: dados, períodos aquisitivos e ocorrências |
+| `/ferias/painel` | Painel de férias nos quatro estados |
 
 Sobre `GET /pessoas/{id}/ocorrencias`: um id inexistente devolve **404**, não uma lista
 vazia com 200. A verificação é feita no Service com `existsById` antes da consulta — não
@@ -152,6 +161,72 @@ do campo correspondente, e não como tela de erro.
 
 ---
 
+## Controle de férias
+
+Implementado conforme o modelo escolhido na seção 2.3 do documento de decisões:
+**períodos aquisitivos como registros**.
+
+A cada doze meses completos de vínculo nasce um registro `PeriodoAquisitivo` com data de
+início, data de fim, dias de direito e prazo final para gozo (doze meses após o fim do
+período aquisitivo). O período em curso não é criado — ele só nasce quando os doze meses
+se completam.
+
+**O saldo não é armazenado.** Ele é calculado no momento da consulta, somando as
+ocorrências do tipo `FERIAS` não canceladas e abatendo-as dos períodos. Assim os períodos
+se acumulam naturalmente, o histórico permanece visível e nenhum dado é sobrescrito — que
+era precisamente o defeito da alternativa descartada na seção 2.3.
+
+**Não existe rotina periódica.** Os períodos faltantes são criados sob demanda, de forma
+idempotente, quando a situação da pessoa é consultada. Consultar várias vezes não duplica
+nada.
+
+### Imputação dos dias gozados
+
+As férias gozadas abatem sempre do **período mais antigo com saldo**. A ordem importa: o
+período mais antigo é o que está mais perto de vencer. Abater pelo mais recente deixaria
+intacto justamente o saldo em risco e produziria um alerta falso.
+
+### Os quatro estados do painel
+
+| Estado | Critério |
+|---|---|
+| **Vencido** | Existe período com saldo cujo prazo final de gozo já passou |
+| **Próximo do vencimento** | Existe período com saldo vencendo dentro da antecedência configurada |
+| **Regular** | Nenhum prazo em risco |
+| **Sem regra CLT aplicável** | Vínculo MEI, PJ ou voluntário |
+
+A antecedência do alerta é configurável em `application.properties`:
+
+```properties
+kodie.ferias.dias-alerta-vencimento=90
+```
+
+Definida em **90 dias** com o cliente. Alterar não exige recompilação.
+
+### Caso de validação
+
+O exemplo dado pela cliente na questão 7 é reproduzido pelo `DataLoader` e confere:
+
+| | Esperado | Calculado |
+|---|---|---|
+| Admissão | 04/12/2024 | 04/12/2024 |
+| Fim do período aquisitivo | 03/12/2025 | 03/12/2025 |
+| Fim do período concessivo | 03/12/2026 | 03/12/2026 |
+| Dias gozados (julho/2026) | 15 | 15 |
+| Saldo | 15 | 15 |
+| Situação | — | Próximo do vencimento |
+
+### Premissas a confirmar com a cliente
+
+- **Afastamento não suspende o período aquisitivo** — ele continua contando normalmente.
+  Adequado para licenças curtas; a CLT prevê tratamento diferente para afastamentos longos.
+  Esse é um dos pontos listados como pendentes na seção 5 do documento de decisões.
+- **Dias de direito fixos em 30 por período.** A CLT reduz esse número conforme as faltas
+  injustificadas no período; essa proporcionalidade não foi implementada.
+- Para pessoas desligadas, a contagem de períodos para na data de saída.
+
+---
+
 ## Tratamento de vínculos não CLT
 
 Conforme a seção 2.4 do documento de decisões, prestadores MEI e PJ e voluntários **não
@@ -172,6 +247,10 @@ utilizado.
 - 4 ocorrências vinculadas a pessoas
 - 1 ocorrência sem pessoa vinculada (feriado institucional)
 - 1 pessoa sem nenhuma ocorrência, para a listagem exibir o total zero
+
+A carga foi montada para que o painel de férias exiba os quatro estados sem nenhuma
+intervenção: uma pessoa com férias próximas do vencimento, uma com três períodos
+acumulados e dois já vencidos, e duas sem regra CLT aplicável.
 
 ---
 
@@ -217,13 +296,10 @@ Thymeleaf · H2 em memória · Maven.
 Excluídos deliberadamente, conforme a seção 3.3 do documento de decisões ou por decisão
 de priorização da equipe:
 
-- **Controle de férias com períodos aquisitivos** — o modelo está definido na seção 2.3
-  do documento (períodos como registros, saldo calculado na consulta, nunca armazenado),
-  e a base para implementá-lo já existe: `TipoVinculo.temRegraDeFerias()` e a entidade
-  `Ocorrencia` com o tipo `FERIAS`. Não foi implementado nesta entrega.
-- **Painel de férias** com os quatro estados (regular, próximo do vencimento, vencido e
-  sem regra CLT aplicável).
-- **Alertas de prazo, calendário e exportação** — dependem do controle de férias acima.
+- **Calendário de ocorrências** em visualização mensal.
+- **Exportação de informações** em CSV, Excel ou PDF — formato prioritário ainda não
+  definido com a cliente.
+- **Indicadores básicos** e indicadores de diversidade agregados.
 - **Usuário e perfil de acesso** (administrador, operador, consulta) — previstos na seção
   2.2 do documento, não implementados.
 - **Acompanhamento de aniversários** e **portal de autosserviço** — indicados pela própria
@@ -235,8 +311,9 @@ de priorização da equipe:
 
 Levantados na seção 5 do documento de decisões e ainda em aberto:
 
-- tratamento do período aquisitivo durante afastamento;
-- antecedência desejada para os alertas de vencimento de férias;
+- ~~antecedência dos alertas de vencimento~~ — **definida em 90 dias**;
+- ~~tratamento do período aquisitivo durante afastamento~~ — **adotada a contagem
+  contínua**, a confirmar com a cliente;
 - quais campos do cadastro entram efetivamente no MVP;
 - formatos de exportação prioritários entre CSV, Excel e PDF;
 - necessidade de acesso por dispositivos móveis.

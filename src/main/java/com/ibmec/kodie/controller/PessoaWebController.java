@@ -1,6 +1,7 @@
 package com.ibmec.kodie.controller;
 
 import com.ibmec.kodie.model.*;
+import com.ibmec.kodie.service.FeriasService;
 import com.ibmec.kodie.service.OcorrenciaService;
 import com.ibmec.kodie.service.PessoaService;
 import jakarta.validation.Valid;
@@ -18,10 +19,14 @@ public class PessoaWebController {
 
     private final PessoaService pessoaService;
     private final OcorrenciaService ocorrenciaService;
+    private final FeriasService feriasService;
 
-    public PessoaWebController(PessoaService pessoaService, OcorrenciaService ocorrenciaService) {
+    public PessoaWebController(PessoaService pessoaService,
+                               OcorrenciaService ocorrenciaService,
+                               FeriasService feriasService) {
         this.pessoaService = pessoaService;
         this.ocorrenciaService = ocorrenciaService;
+        this.feriasService = feriasService;
     }
 
     /** Listas de opcoes disponiveis em todas as telas deste controller. */
@@ -100,6 +105,7 @@ public class PessoaWebController {
 
         model.addAttribute("pessoa", pessoa.get());
         model.addAttribute("ocorrencias", pessoaService.listarOcorrencias(id));
+        model.addAttribute("ferias", feriasService.situacaoDe(pessoa.get()));
         if (!model.containsAttribute("novaOcorrencia")) {
             model.addAttribute("novaOcorrencia", new Ocorrencia());
         }
@@ -149,6 +155,7 @@ public class PessoaWebController {
     private String recarregarFicha(Model model, Pessoa pessoa, Long id) {
         model.addAttribute("pessoa", pessoa);
         model.addAttribute("ocorrencias", pessoaService.listarOcorrencias(id));
+        model.addAttribute("ferias", feriasService.situacaoDe(pessoa));
         return "ficha";
     }
 }

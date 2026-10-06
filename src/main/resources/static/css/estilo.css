@@ -121,3 +121,51 @@ td a:hover { text-decoration: underline; }
 .ficha-dados { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; }
 .ficha-dados dt { font-size: .74rem; text-transform: uppercase; letter-spacing: .05em; color: var(--tinta-fraca); }
 .ficha-dados dd { margin: 3px 0 0; font-size: .92rem; font-weight: 500; }
+
+/* --- Painel de ferias ------------------------------------------------- */
+
+.painel-grupo { border-left: 4px solid var(--linha); }
+.painel-grupo.vencido   { border-left-color: var(--erro); }
+.painel-grupo.proximo   { border-left-color: #d79a1e; }
+.painel-grupo.regular   { border-left-color: var(--sucesso); }
+.painel-grupo.sem-regra { border-left-color: #9aa3b2; }
+
+.painel-grupo h2 { display: flex; align-items: center; gap: 10px; }
+
+.contador {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 7px;
+    border-radius: 999px;
+    background: var(--tinta);
+    color: #fff;
+    font-size: .76rem;
+    font-weight: 700;
+}
+
+.painel-grupo h2 small {
+    margin-left: auto;
+    font-size: .72rem;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--tinta-fraca);
+}
+
+.nota {
+    margin: -4px 0 16px;
+    font-size: .82rem;
+    color: var(--tinta-fraca);
+    max-width: 70ch;
+}
+
+.menu { display: flex; gap: 18px; margin-top: 6px; }
+.menu a { font-size: .82rem; }
+
+/* --- Periodos aquisitivos na ficha ------------------------------------ */
+
+.periodo-vencido td { background: #fdf3f2; }
+.periodo-proximo td { background: #fdf8ec; }

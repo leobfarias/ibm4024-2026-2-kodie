@@ -4,6 +4,7 @@ import com.ibmec.kodie.model.Ocorrencia;
 import com.ibmec.kodie.model.Pessoa;
 import com.ibmec.kodie.model.SituacaoVinculo;
 import com.ibmec.kodie.repository.OcorrenciaRepository;
+import com.ibmec.kodie.repository.PeriodoAquisitivoRepository;
 import com.ibmec.kodie.repository.PessoaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,10 +17,14 @@ public class PessoaService {
 
     private final PessoaRepository repository;
     private final OcorrenciaRepository ocorrenciaRepository;
+    private final PeriodoAquisitivoRepository periodoRepository;
 
-    public PessoaService(PessoaRepository repository, OcorrenciaRepository ocorrenciaRepository) {
+    public PessoaService(PessoaRepository repository,
+                         OcorrenciaRepository ocorrenciaRepository,
+                         PeriodoAquisitivoRepository periodoRepository) {
         this.repository = repository;
         this.ocorrenciaRepository = ocorrenciaRepository;
+        this.periodoRepository = periodoRepository;
     }
 
     public List<Pessoa> listarTodos() {
@@ -98,6 +103,7 @@ public class PessoaService {
             throw new RecursoNaoEncontradoException("Pessoa nao encontrada: " + id);
         }
         ocorrenciaRepository.deleteAll(ocorrenciaRepository.findByPessoaIdOrderByDataInicioDesc(id));
+        periodoRepository.deleteByPessoaId(id);
         repository.deleteById(id);
     }
 
