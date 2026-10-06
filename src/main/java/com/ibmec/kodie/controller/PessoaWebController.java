@@ -2,7 +2,6 @@ package com.ibmec.kodie.controller;
 
 import com.ibmec.kodie.model.*;
 import com.ibmec.kodie.service.FeriasService;
-import com.ibmec.kodie.service.OcorrenciaService;
 import com.ibmec.kodie.service.PessoaService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -18,18 +17,13 @@ import java.util.Optional;
 public class PessoaWebController {
 
     private final PessoaService pessoaService;
-    private final OcorrenciaService ocorrenciaService;
     private final FeriasService feriasService;
 
-    public PessoaWebController(PessoaService pessoaService,
-                               OcorrenciaService ocorrenciaService,
-                               FeriasService feriasService) {
+    public PessoaWebController(PessoaService pessoaService, FeriasService feriasService) {
         this.pessoaService = pessoaService;
-        this.ocorrenciaService = ocorrenciaService;
         this.feriasService = feriasService;
     }
 
-    /** Listas de opcoes disponiveis em todas as telas deste controller. */
     @ModelAttribute("tiposVinculo")
     public TipoVinculo[] tiposVinculo() {
         return TipoVinculo.values();
@@ -40,24 +34,27 @@ public class PessoaWebController {
         return SituacaoVinculo.values();
     }
 
-    @ModelAttribute("tiposOcorrencia")
-    public TipoOcorrencia[] tiposOcorrencia() {
-        return TipoOcorrencia.values();
-    }
-
-    @ModelAttribute("situacoesOcorrencia")
-    public SituacaoOcorrencia[] situacoesOcorrencia() {
-        return SituacaoOcorrencia.values();
-    }
-
     // ------------------------------------------------------------------
-    // Tela 1: lista de pessoas com formulario de cadastro
+    // Lista de pessoas, com busca e filtros
     // ------------------------------------------------------------------
 
     @GetMapping
-    public String listar(Model model) {
-        model.addAttribute("resumos", pessoaService.listarResumo());
-        model.addAttribute("novaPessoa", new Pessoa());
+    public String listar(@RequestParam(required = false) String busca,
+                         @RequestParam(required = false) TipoVinculo vinculo,
+                         @RequestParam(required = false) SituacaoVinculo situacao,
+                         Model model) {
+
+        model.addAttribute("resumos", pessoaService.listarResumo(busca, vinculo, situacao));
+        model.addAttribute("busca", busca);
+        model.addAttribute("vinculoFiltro", vinculo);
+        model.addAttribute("situacaoFiltro", situacao);
+        model.addAttribute("totalCadastrado", pessoaService.contarTodas());
+        model.addAttribute("totalAtivo", pessoaService.contarAtivas());
+        model.addAttribute("filtrando", busca != null || vinculo != null || situacao != null);
+
+        if (!model.containsAttribute("novaPessoa")) {
+            model.addAttribute("novaPessoa", new Pessoa());
+        }
         return "pessoas";
     }
 
@@ -68,16 +65,14 @@ public class PessoaWebController {
                             RedirectAttributes atributos) {
 
         if (resultado.hasErrors()) {
-            model.addAttribute("resumos", pessoaService.listarResumo());
-            return "pessoas";
+            return recarregarLista(model);
         }
 
         try {
             pessoaService.criar(novaPessoa);
         } catch (IllegalArgumentException e) {
             resultado.rejectValue("cpf", "regraDeNegocio", e.getMessage());
-            model.addAttribute("resumos", pessoaService.listarResumo());
-            return "pessoas";
+            return recarregarLista(model);
         }
 
         atributos.addFlashAttribute("mensagem", "Pessoa cadastrada com sucesso");
@@ -92,7 +87,7 @@ public class PessoaWebController {
     }
 
     // ------------------------------------------------------------------
-    // Tela 2: ficha individual com as ocorrencias da pessoa
+    // Ficha individual
     // ------------------------------------------------------------------
 
     @GetMapping("/{id}")
@@ -106,56 +101,15 @@ public class PessoaWebController {
         model.addAttribute("pessoa", pessoa.get());
         model.addAttribute("ocorrencias", pessoaService.listarOcorrencias(id));
         model.addAttribute("ferias", feriasService.situacaoDe(pessoa.get()));
-        if (!model.containsAttribute("novaOcorrencia")) {
-            model.addAttribute("novaOcorrencia", new Ocorrencia());
-        }
         return "ficha";
     }
 
-    @PostMapping("/{id}/ocorrencias")
-    public String registrarOcorrencia(@PathVariable Long id,
-                                      @Valid @ModelAttribute("novaOcorrencia") Ocorrencia novaOcorrencia,
-                                      BindingResult resultado,
-                                      Model model,
-                                      RedirectAttributes atributos) {
-
-        Optional<Pessoa> pessoa = pessoaService.buscarPorId(id);
-        if (pessoa.isEmpty()) {
-            atributos.addFlashAttribute("erro", "Pessoa nao encontrada: " + id);
-            return "redirect:/pessoas/pagina";
-        }
-
-        novaOcorrencia.setPessoa(pessoa.get());
-
-        if (resultado.hasErrors()) {
-            return recarregarFicha(model, pessoa.get(), id);
-        }
-
-        try {
-            ocorrenciaService.criar(novaOcorrencia);
-        } catch (IllegalArgumentException e) {
-            resultado.rejectValue("dataInicio", "regraDeNegocio", e.getMessage());
-            return recarregarFicha(model, pessoa.get(), id);
-        }
-
-        atributos.addFlashAttribute("mensagem", "Ocorrencia registrada com sucesso");
-        return "redirect:/pessoas/pagina/" + id;
-    }
-
-    @PostMapping("/{pessoaId}/ocorrencias/{ocorrenciaId}/excluir")
-    public String excluirOcorrencia(@PathVariable Long pessoaId,
-                                    @PathVariable Long ocorrenciaId,
-                                    RedirectAttributes atributos) {
-        ocorrenciaService.deletar(ocorrenciaId);
-        atributos.addFlashAttribute("mensagem", "Ocorrencia removida");
-        return "redirect:/pessoas/pagina/" + pessoaId;
-    }
-
-    /** Repoe o que o GET da ficha colocaria, para renderizar a view com os erros. */
-    private String recarregarFicha(Model model, Pessoa pessoa, Long id) {
-        model.addAttribute("pessoa", pessoa);
-        model.addAttribute("ocorrencias", pessoaService.listarOcorrencias(id));
-        model.addAttribute("ferias", feriasService.situacaoDe(pessoa));
-        return "ficha";
+    /** Repoe o que o GET da lista colocaria, para renderizar a view com os erros. */
+    private String recarregarLista(Model model) {
+        model.addAttribute("resumos", pessoaService.listarResumo());
+        model.addAttribute("totalCadastrado", pessoaService.contarTodas());
+        model.addAttribute("totalAtivo", pessoaService.contarAtivas());
+        model.addAttribute("filtrando", false);
+        return "pessoas";
     }
 }

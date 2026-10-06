@@ -1,138 +1,185 @@
 <!DOCTYPE html>
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Sistema KODIE - Cadastro de pessoas</title>
-    <link rel="stylesheet" th:href="@{/css/estilo.css}">
-</head>
+<head th:replace="~{fragmentos/comum :: cabecalho('Pessoas')}"></head>
 <body>
+<div class="aplicacao">
 
-<header class="topo">
-    <h1>Sistema KODIE</h1>
-    <p>Cadastro central de pessoas &middot; KODIE Academy</p>
-    <nav class="menu">
-        <a th:href="@{/pessoas/pagina}">Pessoas</a>
-        <a th:href="@{/ferias/painel}">Painel de ferias</a>
-    </nav>
-</header>
+    <aside th:replace="~{fragmentos/comum :: lateral('pessoas')}"></aside>
 
-<main class="conteudo">
+    <main class="conteudo">
 
-    <p th:if="${mensagem}" th:text="${mensagem}" class="aviso ok"></p>
-    <p th:if="${erro}" th:text="${erro}" class="aviso ruim"></p>
+        <div th:replace="~{fragmentos/comum :: avisos}"></div>
 
-    <section class="cartao">
-        <h2>Cadastrar pessoa</h2>
-
-        <form th:action="@{/pessoas/pagina}" th:object="${novaPessoa}" method="post">
-            <div class="campos">
-
-                <div>
-                    <label for="nome">Nome completo</label>
-                    <input type="text" id="nome" th:field="*{nome}" placeholder="Nome e sobrenome">
-                    <span class="erro" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></span>
-                </div>
-
-                <div>
-                    <label for="cpf">CPF</label>
-                    <input type="text" id="cpf" th:field="*{cpf}" placeholder="Somente numeros" maxlength="11">
-                    <span class="erro" th:if="${#fields.hasErrors('cpf')}" th:errors="*{cpf}"></span>
-                </div>
-
-                <div>
-                    <label for="email">E-mail</label>
-                    <input type="email" id="email" th:field="*{email}" placeholder="nome@exemplo.com">
-                    <span class="erro" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
-                </div>
-
-                <div>
-                    <label for="cargo">Cargo</label>
-                    <input type="text" id="cargo" th:field="*{cargo}" placeholder="Funcao exercida">
-                    <span class="erro" th:if="${#fields.hasErrors('cargo')}" th:errors="*{cargo}"></span>
-                </div>
-
-                <div>
-                    <label for="tipoVinculo">Tipo de vinculo</label>
-                    <select id="tipoVinculo" th:field="*{tipoVinculo}">
-                        <option value="">Selecione</option>
-                        <option th:each="t : ${tiposVinculo}"
-                                th:value="${t}" th:text="${t.descricao}"></option>
-                    </select>
-                    <span class="erro" th:if="${#fields.hasErrors('tipoVinculo')}" th:errors="*{tipoVinculo}"></span>
-                </div>
-
-                <div>
-                    <label for="situacao">Situacao</label>
-                    <select id="situacao" th:field="*{situacao}">
-                        <option th:each="s : ${situacoesVinculo}"
-                                th:value="${s}" th:text="${s.descricao}"></option>
-                    </select>
-                    <span class="erro" th:if="${#fields.hasErrors('situacao')}" th:errors="*{situacao}"></span>
-                </div>
-
-                <div>
-                    <label for="dataEntrada">Data de entrada</label>
-                    <input type="date" id="dataEntrada" th:field="*{dataEntrada}">
-                    <span class="erro" th:if="${#fields.hasErrors('dataEntrada')}" th:errors="*{dataEntrada}"></span>
-                </div>
-
-                <div>
-                    <label for="dataSaida">Data de saida</label>
-                    <input type="date" id="dataSaida" th:field="*{dataSaida}">
-                    <span class="erro" th:if="${#fields.hasErrors('dataSaida')}" th:errors="*{dataSaida}"></span>
-                </div>
-
+        <div class="cabecalho">
+            <div>
+                <h1>Pessoas</h1>
+                <p class="resumo">
+                    <span th:text="${totalCadastrado}">0</span> cadastradas &middot;
+                    <span th:text="${totalAtivo}">0</span> ativas
+                </p>
             </div>
-            <button type="submit">Salvar cadastro</button>
+            <div class="acoes">
+                <a class="botao" th:href="@{/ocorrencias/pagina/nova}">Registrar ocorrencia</a>
+                <a class="botao primario" href="#cadastro">Nova pessoa</a>
+            </div>
+        </div>
+
+        <!-- Busca e filtros: enviados por GET para que a URL continue compartilhavel -->
+        <form class="filtros" method="get" th:action="@{/pessoas/pagina}">
+            <input type="search" name="busca" th:value="${busca}"
+                   placeholder="Buscar por nome, e-mail ou cargo">
+
+            <select name="vinculo" onchange="this.form.submit()">
+                <option value="">Vinculo: todos</option>
+                <option th:each="t : ${tiposVinculo}"
+                        th:value="${t}" th:text="${t.descricao}"
+                        th:selected="${t == vinculoFiltro}"></option>
+            </select>
+
+            <select name="situacao" onchange="this.form.submit()">
+                <option value="">Situacao: todas</option>
+                <option th:each="s : ${situacoesVinculo}"
+                        th:value="${s}" th:text="${s.descricao}"
+                        th:selected="${s == situacaoFiltro}"></option>
+            </select>
+
+            <button type="submit" class="botao">Filtrar</button>
+            <a th:if="${filtrando}" class="botao" th:href="@{/pessoas/pagina}">Limpar</a>
         </form>
-    </section>
 
-    <section class="cartao">
-        <h2>Pessoas cadastradas</h2>
+        <div class="quadro">
+            <table>
+                <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Cargo</th>
+                    <th>Vinculo</th>
+                    <th>Entrada</th>
+                    <th>Ocorrencias</th>
+                    <th>Situacao</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(resumos)}">
+                    <td colspan="7" class="vazio"
+                        th:text="${filtrando}
+                                 ? 'Nenhuma pessoa corresponde aos filtros aplicados.'
+                                 : 'Nenhuma pessoa cadastrada ate o momento.'">
+                    </td>
+                </tr>
+                <tr th:each="r : ${resumos}">
+                    <td class="principal">
+                        <a th:href="@{/pessoas/pagina/{id}(id=${r.pessoa.id})}" th:text="${r.pessoa.nome}">Nome</a>
+                    </td>
+                    <td th:text="${r.pessoa.cargo}">Cargo</td>
+                    <td>
+                        <span class="etiqueta"
+                              th:classappend="${r.pessoa.possuiRegraDeFerias()} ? 'azul'"
+                              th:text="${r.pessoa.tipoVinculo.descricao}">Vinculo</span>
+                    </td>
+                    <td class="numerico" th:text="${#temporals.format(r.pessoa.dataEntrada, 'dd/MM/yyyy')}">00/00/0000</td>
+                    <td class="numerico" th:text="${r.totalOcorrencias}">0</td>
+                    <td>
+                        <span class="etiqueta"
+                              th:classappend="${r.pessoa.situacao.name() == 'ATIVO'} ? 'verde'
+                                            : (${r.pessoa.situacao.name() == 'AFASTADO'} ? 'ambar'
+                                            : (${r.pessoa.situacao.name() == 'DESLIGADO'} ? 'vermelha' : ''))"
+                              th:text="${r.pessoa.situacao.descricao}">Situacao</span>
+                    </td>
+                    <td>
+                        <form th:action="@{/pessoas/pagina/{id}/excluir(id=${r.pessoa.id})}" method="post">
+                            <button type="submit" class="botao texto">excluir</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="quadro-rodape" th:unless="${#lists.isEmpty(resumos)}">
+                <span th:text="'Exibindo ' + ${#lists.size(resumos)} + ' de ' + ${totalCadastrado}">Exibindo</span>
+            </div>
+        </div>
 
-        <p th:if="${#lists.isEmpty(resumos)}" class="vazio">Nenhuma pessoa cadastrada ate o momento.</p>
+        <section class="cartao" id="cadastro" style="margin-top:22px">
+            <div class="cartao-titulo">Cadastrar pessoa</div>
+            <div class="cartao-corpo">
+                <form th:action="@{/pessoas/pagina}" th:object="${novaPessoa}" method="post" class="formulario">
 
-        <table th:unless="${#lists.isEmpty(resumos)}">
-            <thead>
-            <tr>
-                <th>Nome</th>
-                <th>Cargo</th>
-                <th>Vinculo</th>
-                <th>Situacao</th>
-                <th>Entrada</th>
-                <th>Ocorrencias</th>
-                <th></th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="r : ${resumos}">
-                <td>
-                    <a th:href="@{/pessoas/pagina/{id}(id=${r.pessoa.id})}" th:text="${r.pessoa.nome}">Nome</a>
-                </td>
-                <td th:text="${r.pessoa.cargo}">Cargo</td>
-                <td>
-                    <span class="etiqueta"
-                          th:classappend="${r.pessoa.tipoVinculo.name() == 'CLT'} ? 'clt' : ''"
-                          th:text="${r.pessoa.tipoVinculo.descricao}">Vinculo</span>
-                </td>
-                <td>
-                    <span class="etiqueta"
-                          th:classappend="${#strings.toLowerCase(r.pessoa.situacao.name())}"
-                          th:text="${r.pessoa.situacao.descricao}">Situacao</span>
-                </td>
-                <td th:text="${#temporals.format(r.pessoa.dataEntrada, 'dd/MM/yyyy')}">00/00/0000</td>
-                <td th:text="${r.totalOcorrencias}">0</td>
-                <td>
-                    <form th:action="@{/pessoas/pagina/{id}/excluir(id=${r.pessoa.id})}" method="post">
-                        <button type="submit" class="discreto">excluir</button>
-                    </form>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-    </section>
+                    <div class="campos">
+                        <div>
+                            <label for="nome">Nome completo</label>
+                            <input type="text" id="nome" th:field="*{nome}"
+                                   th:classappend="${#fields.hasErrors('nome')} ? 'invalido'"
+                                   placeholder="Nome e sobrenome">
+                            <span class="erro" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></span>
+                        </div>
 
-</main>
+                        <div>
+                            <label for="cpf">CPF</label>
+                            <input type="text" id="cpf" th:field="*{cpf}" maxlength="11"
+                                   th:classappend="${#fields.hasErrors('cpf')} ? 'invalido'"
+                                   placeholder="Somente numeros">
+                            <span class="erro" th:if="${#fields.hasErrors('cpf')}" th:errors="*{cpf}"></span>
+                        </div>
+
+                        <div>
+                            <label for="email">E-mail</label>
+                            <input type="email" id="email" th:field="*{email}"
+                                   th:classappend="${#fields.hasErrors('email')} ? 'invalido'"
+                                   placeholder="nome@exemplo.com">
+                            <span class="erro" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+                        </div>
+
+                        <div>
+                            <label for="cargo">Cargo</label>
+                            <input type="text" id="cargo" th:field="*{cargo}"
+                                   th:classappend="${#fields.hasErrors('cargo')} ? 'invalido'"
+                                   placeholder="Funcao exercida">
+                            <span class="erro" th:if="${#fields.hasErrors('cargo')}" th:errors="*{cargo}"></span>
+                        </div>
+
+                        <div>
+                            <label for="tipoVinculo">Tipo de vinculo</label>
+                            <select id="tipoVinculo" th:field="*{tipoVinculo}"
+                                    th:classappend="${#fields.hasErrors('tipoVinculo')} ? 'invalido'">
+                                <option value="">Selecione</option>
+                                <option th:each="t : ${tiposVinculo}" th:value="${t}" th:text="${t.descricao}"></option>
+                            </select>
+                            <span class="erro" th:if="${#fields.hasErrors('tipoVinculo')}" th:errors="*{tipoVinculo}"></span>
+                        </div>
+
+                        <div>
+                            <label for="situacao">Situacao</label>
+                            <select id="situacao" th:field="*{situacao}"
+                                    th:classappend="${#fields.hasErrors('situacao')} ? 'invalido'">
+                                <option th:each="s : ${situacoesVinculo}" th:value="${s}" th:text="${s.descricao}"></option>
+                            </select>
+                            <span class="erro" th:if="${#fields.hasErrors('situacao')}" th:errors="*{situacao}"></span>
+                        </div>
+
+                        <div>
+                            <label for="dataEntrada">Data de entrada</label>
+                            <input type="date" id="dataEntrada" th:field="*{dataEntrada}"
+                                   th:classappend="${#fields.hasErrors('dataEntrada')} ? 'invalido'">
+                            <span class="erro" th:if="${#fields.hasErrors('dataEntrada')}" th:errors="*{dataEntrada}"></span>
+                        </div>
+
+                        <div>
+                            <label for="dataSaida">Data de saida</label>
+                            <input type="date" id="dataSaida" th:field="*{dataSaida}"
+                                   th:classappend="${#fields.hasErrors('dataSaida')} ? 'invalido'">
+                            <span class="erro" th:if="${#fields.hasErrors('dataSaida')}" th:errors="*{dataSaida}"></span>
+                        </div>
+                    </div>
+
+                    <div class="formulario-acoes">
+                        <button type="submit" class="botao primario">Salvar cadastro</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+    </main>
+</div>
 </body>
 </html>

@@ -91,9 +91,28 @@ montada pelo Service com `countByPessoaId` e entregue pronta ao template.
 
 | Caminho | Descrição |
 |---|---|
-| `/pessoas/pagina` | Lista de pessoas e formulário de cadastro |
-| `/pessoas/pagina/{id}` | Ficha individual: dados, períodos aquisitivos e ocorrências |
-| `/ferias/painel` | Painel de férias nos quatro estados |
+| `/` | Redireciona para a lista de pessoas |
+| `/pessoas/pagina` | Lista de pessoas, com busca e filtros, e formulário de cadastro |
+| `/pessoas/pagina/{id}` | Ficha individual: dados, vínculo, histórico de férias e ocorrências |
+| `/ferias/painel` | Painel de férias: indicadores e tabela, com busca e filtros |
+| `/ocorrencias/pagina/nova` | Registro de ocorrência |
+| `/modulos/{calendario\|indicadores\|acessos}` | Módulos previstos no escopo, ainda não implementados |
+
+As telas seguem o protótipo visual validado com a cliente: navegação lateral fixa,
+tipografia IBM Plex, indicadores numéricos no painel de férias e etiquetas de situação
+em verde, âmbar, vermelho e neutro.
+
+### Busca e filtros
+
+A lista de pessoas e o painel de férias têm busca e filtros que funcionam de verdade,
+enviados por `GET` para que a URL permaneça compartilhável. Na lista de pessoas o filtro
+é resolvido no banco, por uma consulta JPQL única em que cada parâmetro nulo desliga o
+próprio critério:
+
+```
+/pessoas/pagina?busca=ana&vinculo=CLT&situacao=ATIVO
+/ferias/painel?situacao=VENCIDO
+```
 
 Sobre `GET /pessoas/{id}/ocorrencias`: um id inexistente devolve **404**, não uma lista
 vazia com 200. A verificação é feita no Service com `existsById` antes da consulta — não
@@ -289,6 +308,12 @@ curl -i -X POST http://localhost:8080/ocorrencias \
 Java 25 · Spring Boot 4.1.1 · Spring Web · Spring Data JPA · Hibernate · Bean Validation ·
 Thymeleaf · H2 em memória · Maven.
 
+O front-end é HTML, CSS e Thymeleaf renderizado no servidor, sem framework de JavaScript
+e sem etapa de build de front-end. A única dependência externa é a fonte IBM Plex,
+carregada do Google Fonts. A navegação lateral vive em um fragmento Thymeleaf
+(`templates/fragmentos/comum.html`) reutilizado por todas as telas, para não sair de
+sincronia entre elas.
+
 ---
 
 ## Fora do escopo desta versão
@@ -296,12 +321,14 @@ Thymeleaf · H2 em memória · Maven.
 Excluídos deliberadamente, conforme a seção 3.3 do documento de decisões ou por decisão
 de priorização da equipe:
 
-- **Calendário de ocorrências** em visualização mensal.
+- **Calendário de ocorrências** em visualização mensal — o item existe na navegação e
+  informa que não foi implementado.
 - **Exportação de informações** em CSV, Excel ou PDF — formato prioritário ainda não
   definido com a cliente.
-- **Indicadores básicos** e indicadores de diversidade agregados.
+- **Indicadores básicos** e indicadores de diversidade agregados — idem.
 - **Usuário e perfil de acesso** (administrador, operador, consulta) — previstos na seção
-  2.2 do documento, não implementados.
+  2.2 do documento, não implementados. A identificação exibida no rodapé da navegação é
+  fixa, apenas ilustrativa.
 - **Acompanhamento de aniversários** e **portal de autosserviço** — indicados pela própria
   cliente como fora do MVP.
 - **Armazenamento de arquivos de documentos** — conforme a seção 3.3, a orientação é
@@ -317,6 +344,14 @@ Levantados na seção 5 do documento de decisões e ainda em aberto:
 - quais campos do cadastro entram efetivamente no MVP;
 - formatos de exportação prioritários entre CSV, Excel e PDF;
 - necessidade de acesso por dispositivos móveis.
+
+### Campos do protótipo ausentes no modelo
+
+O protótipo visual exibe campos que não existem no modelo de dados desta versão e que
+portanto não são renderizados: nome social, data de nascimento, telefone, cidade/estado,
+área, projeto e cliente. Eles dependem da definição de **quais campos do cadastro entram
+efetivamente no MVP**, que continua pendente com a cliente (seção 5 do documento de
+decisões). Acrescentá-los é uma alteração de entidade, migração e formulário.
 
 ### Limitação conhecida
 

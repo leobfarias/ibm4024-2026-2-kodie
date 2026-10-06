@@ -3,6 +3,7 @@ package com.ibmec.kodie.service;
 import com.ibmec.kodie.model.Ocorrencia;
 import com.ibmec.kodie.model.Pessoa;
 import com.ibmec.kodie.model.SituacaoVinculo;
+import com.ibmec.kodie.model.TipoVinculo;
 import com.ibmec.kodie.repository.OcorrenciaRepository;
 import com.ibmec.kodie.repository.PeriodoAquisitivoRepository;
 import com.ibmec.kodie.repository.PessoaRepository;
@@ -37,9 +38,26 @@ public class PessoaService {
 
     /** Usada pela pagina: cada pessoa acompanhada do seu total de ocorrencias. */
     public List<PessoaResumo> listarResumo() {
-        return repository.findAll().stream()
+        return listarResumo(null, null, null);
+    }
+
+    /**
+     * Mesma listagem, restringida pelos filtros da tela. Parametros em branco
+     * sao convertidos em nulo para desligar o criterio correspondente.
+     */
+    public List<PessoaResumo> listarResumo(String busca, TipoVinculo tipoVinculo, SituacaoVinculo situacao) {
+        String termo = (busca == null || busca.isBlank()) ? null : busca.trim();
+        return repository.buscarComFiltros(termo, tipoVinculo, situacao).stream()
                 .map(p -> new PessoaResumo(p, ocorrenciaRepository.countByPessoaId(p.getId())))
                 .toList();
+    }
+
+    public long contarTodas() {
+        return repository.count();
+    }
+
+    public long contarAtivas() {
+        return repository.countBySituacao(SituacaoVinculo.ATIVO);
     }
 
     /**

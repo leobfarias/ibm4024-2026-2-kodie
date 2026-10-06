@@ -1,171 +1,517 @@
+/* ============================================================
+   Sistema KODIE - folha de estilo
+   Paleta, tipografia e componentes do prototipo aprovado.
+   ============================================================ */
+
 :root {
-    --tinta: #1a1d24;
-    --tinta-fraca: #5f6672;
-    --linha: #e2e5ea;
-    --fundo: #f6f7f9;
-    --destaque: #2f5fd0;
-    --erro: #c0392b;
-    --sucesso: #1e7a46;
+    /* Superficies */
+    --fundo: #f6f6f4;
+    --superficie: #ffffff;
+    --superficie-suave: #fafaf8;
+    --hover: #f2f2ef;
+
+    /* Bordas */
+    --borda: #e4e4e1;
+    --borda-suave: #eeeeeb;
+    --borda-campo: #dcdcd8;
+    --linha-tabela: #f0f0ed;
+
+    /* Texto */
+    --texto: #1c1c1a;
+    --texto-medio: #55554f;
+    --texto-fraco: #8a8a83;
+    --texto-rotulo: #7a7a74;
+
+    /* Destaque */
+    --destaque: #2c5c86;
+    --destaque-escuro: #25527a;
+
+    /* Estados */
+    --verde: #1f7a4d;
+    --ambar: #8a5a00;
+    --vermelho: #a32b2b;
+
+    --raio: 5px;
+    --raio-pequeno: 4px;
 }
 
 * { box-sizing: border-box; }
 
 body {
     margin: 0;
-    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    color: var(--tinta);
     background: var(--fundo);
-    line-height: 1.5;
+    color: var(--texto);
+    font-family: 'IBM Plex Sans', -apple-system, Helvetica, Arial, sans-serif;
+    font-size: 13.5px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
 }
 
-.topo {
-    background: var(--tinta);
-    color: #fff;
-    padding: 18px 32px;
+a { color: var(--destaque); text-decoration: none; }
+a:hover { color: #1f4666; }
+
+select, input, textarea, button { font-family: inherit; font-size: inherit; color: inherit; }
+
+.numerico { font-variant-numeric: tabular-nums; }
+
+/* ------------------------------------------------------------
+   Estrutura: navegacao lateral fixa + area de conteudo
+   ------------------------------------------------------------ */
+
+.aplicacao { display: flex; min-height: 100vh; }
+
+.lateral {
+    width: 238px;
+    flex: none;
+    background: var(--superficie);
+    border-right: 1px solid var(--borda);
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
 }
 
-.topo h1 { margin: 0; font-size: 1.15rem; letter-spacing: .02em; }
-.topo p  { margin: 2px 0 0; font-size: .82rem; color: #aab2c0; }
-.topo a  { color: #aab2c0; text-decoration: none; font-size: .82rem; }
-.topo a:hover { color: #fff; }
+.lateral-marca { padding: 22px 20px 18px; border-bottom: 1px solid var(--borda-suave); }
+.lateral-marca .nome { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+.lateral-marca .descricao { font-size: 11.5px; color: var(--texto-fraco); margin-top: 2px; }
 
-.conteudo { max-width: 1040px; margin: 0 auto; padding: 28px 24px 60px; }
+.lateral-menu { padding: 14px 10px; display: flex; flex-direction: column; gap: 2px; }
 
-.cartao {
-    background: #fff;
-    border: 1px solid var(--linha);
-    border-radius: 8px;
-    padding: 22px 24px;
+.lateral-menu a {
+    display: block;
+    padding: 8px 12px;
+    border: 1px solid transparent;
+    border-radius: var(--raio-pequeno);
+    font-size: 13px;
+    color: #3d3d38;
+}
+
+.lateral-menu a:hover { background: var(--hover); color: #3d3d38; }
+
+.lateral-menu a.ativo {
+    background: #eef3f8;
+    border-color: #dbe6f0;
+    color: var(--destaque);
+    font-weight: 500;
+}
+
+.lateral-rodape {
+    margin-top: auto;
+    padding: 16px 18px;
+    border-top: 1px solid var(--borda-suave);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.lateral-rodape .identificacao { min-width: 0; }
+.lateral-rodape .identificacao .nome {
+    font-size: 12.5px; font-weight: 500;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.lateral-rodape .identificacao .papel { font-size: 11px; color: var(--texto-fraco); }
+
+.inicial {
+    width: 30px; height: 30px; flex: none;
+    border-radius: 50%;
+    background: #ececea;
+    border: 1px solid #e0e0dc;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; color: #6b6b66;
+}
+
+.inicial.grande { width: 46px; height: 46px; font-size: 15px; }
+
+.conteudo { flex: 1; min-width: 0; padding: 30px 38px 60px; }
+
+/* ------------------------------------------------------------
+   Cabecalho de tela
+   ------------------------------------------------------------ */
+
+.cabecalho {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
     margin-bottom: 22px;
 }
 
-h2 { font-size: 1rem; margin: 0 0 16px; text-transform: uppercase;
-     letter-spacing: .06em; color: var(--tinta-fraca); }
+.cabecalho h1 { margin: 0; font-size: 21px; font-weight: 600; letter-spacing: -0.01em; }
+.cabecalho .resumo { margin: 5px 0 0; font-size: 12.5px; color: var(--texto-fraco); }
+.cabecalho .acoes { display: flex; gap: 8px; flex: none; }
 
-.campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
-
-label { display: block; font-size: .8rem; font-weight: 600; margin-bottom: 4px; }
-
-input, select, textarea {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid var(--linha);
-    border-radius: 5px;
-    font-size: .9rem;
-    font-family: inherit;
-    background: #fff;
+.voltar {
+    display: inline-block;
+    font-size: 12.5px;
+    color: var(--destaque);
+    margin-bottom: 14px;
 }
 
-input:focus, select:focus, textarea:focus {
-    outline: 2px solid var(--destaque);
-    outline-offset: -1px;
-}
+/* ------------------------------------------------------------
+   Botoes
+   ------------------------------------------------------------ */
 
-.erro { display: block; color: var(--erro); font-size: .78rem; margin-top: 4px; }
-
-button {
-    margin-top: 16px;
-    padding: 9px 20px;
-    border: 0;
-    border-radius: 5px;
-    background: var(--destaque);
-    color: #fff;
-    font-size: .88rem;
-    font-weight: 600;
+.botao {
+    display: inline-block;
+    padding: 9px 15px;
+    background: var(--superficie);
+    border: 1px solid var(--borda-campo);
+    border-radius: var(--raio-pequeno);
+    font-size: 12.5px;
     cursor: pointer;
+    color: var(--texto);
 }
 
-button:hover { background: #2450b4; }
+.botao:hover { background: var(--hover); color: var(--texto); }
 
-button.discreto {
-    margin: 0;
-    background: none;
-    color: var(--erro);
+.botao.primario {
+    background: var(--destaque);
+    border-color: var(--destaque);
+    color: #fff;
     font-weight: 500;
-    padding: 2px 6px;
-    font-size: .78rem;
 }
 
-button.discreto:hover { background: #fdecea; }
+.botao.primario:hover { background: var(--destaque-escuro); color: #fff; }
 
-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
-th { text-align: left; font-size: .75rem; text-transform: uppercase;
-     letter-spacing: .05em; color: var(--tinta-fraca);
-     border-bottom: 2px solid var(--linha); padding: 8px 10px; }
-td { padding: 10px; border-bottom: 1px solid var(--linha); vertical-align: middle; }
-tr:last-child td { border-bottom: 0; }
-td a { color: var(--destaque); text-decoration: none; font-weight: 600; }
-td a:hover { text-decoration: underline; }
+.botao.texto {
+    background: none;
+    border: none;
+    padding: 2px 6px;
+    font-size: 12px;
+    color: var(--vermelho);
+}
+
+.botao.texto:hover { background: #fbebeb; }
+
+/* ------------------------------------------------------------
+   Cartoes e paineis
+   ------------------------------------------------------------ */
+
+.cartao {
+    background: var(--superficie);
+    border: 1px solid var(--borda);
+    border-radius: var(--raio);
+    margin-bottom: 14px;
+}
+
+.cartao-titulo {
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--borda-suave);
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.cartao-titulo .complemento { font-size: 11.5px; font-weight: 400; color: var(--texto-fraco); }
+
+.cartao-corpo { padding: 20px 24px; }
+
+/* Indicadores numericos do painel de ferias */
+
+.indicadores {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.indicador {
+    background: var(--superficie);
+    border: 1px solid var(--borda);
+    border-radius: var(--raio);
+    padding: 16px 18px;
+}
+
+.indicador .rotulo {
+    font-size: 11.5px;
+    color: var(--texto-rotulo);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.indicador .valor {
+    font-size: 26px;
+    font-weight: 600;
+    margin-top: 6px;
+    letter-spacing: -0.02em;
+}
+
+.indicador .valor.ambar    { color: var(--ambar); }
+.indicador .valor.vermelho { color: var(--vermelho); }
+.indicador .valor.neutro   { color: var(--texto-medio); }
+
+.indicador .detalhe { font-size: 11.5px; color: var(--texto-fraco); margin-top: 2px; }
+
+/* ------------------------------------------------------------
+   Filtros
+   ------------------------------------------------------------ */
+
+.filtros { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+
+.filtros input[type="search"],
+.filtros input[type="text"] { flex: 1; min-width: 240px; }
+
+.filtros input, .filtros select {
+    padding: 8px 11px;
+    background: var(--superficie);
+    border: 1px solid var(--borda-campo);
+    border-radius: var(--raio-pequeno);
+    font-size: 12.5px;
+}
+
+.filtros select { min-width: 132px; }
+
+/* ------------------------------------------------------------
+   Tabelas
+   ------------------------------------------------------------ */
+
+.quadro {
+    background: var(--superficie);
+    border: 1px solid var(--borda);
+    border-radius: var(--raio);
+    overflow-x: auto;
+}
+
+table { width: 100%; border-collapse: collapse; }
+
+thead tr { background: var(--superficie-suave); border-bottom: 1px solid var(--borda); }
+
+th {
+    text-align: left;
+    padding: 10px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--texto-rotulo);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+}
+
+td { padding: 11px 16px; border-bottom: 1px solid var(--linha-tabela); color: var(--texto-medio); }
+
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover { background: var(--superficie-suave); }
+
+td.principal { font-weight: 500; color: var(--texto); white-space: nowrap; }
+td.principal a { color: var(--texto); }
+td.principal a:hover { color: var(--destaque); }
+
+.quadro-rodape {
+    padding: 11px 16px;
+    background: var(--superficie-suave);
+    border-top: 1px solid var(--borda);
+    font-size: 12px;
+    color: var(--texto-fraco);
+}
+
+/* ------------------------------------------------------------
+   Etiquetas de situacao
+   ------------------------------------------------------------ */
 
 .etiqueta {
     display: inline-block;
-    padding: 2px 9px;
-    border-radius: 999px;
-    font-size: .74rem;
-    font-weight: 600;
-    background: #eef1f6;
-    color: var(--tinta-fraca);
+    padding: 3px 9px;
+    border-radius: 3px;
+    font-size: 11.5px;
+    font-weight: 500;
+    white-space: nowrap;
+    border: 1px solid var(--borda);
+    background: #f4f4f1;
+    color: var(--texto-medio);
 }
 
-.etiqueta.clt       { background: #e6f0ff; color: #1f4fb8; }
-.etiqueta.ativo     { background: #e6f5ec; color: var(--sucesso); }
-.etiqueta.afastado  { background: #fff4e0; color: #9a6400; }
-.etiqueta.desligado { background: #fdecea; color: var(--erro); }
+.etiqueta.verde    { background: #eaf4ee; color: var(--verde);    border-color: #d7e9de; }
+.etiqueta.ambar    { background: #fdf3e0; color: var(--ambar);    border-color: #f2e3c4; }
+.etiqueta.vermelha { background: #fbebeb; color: var(--vermelho); border-color: #f0d6d6; }
+.etiqueta.azul     { background: #eef3f8; color: var(--destaque); border-color: #dbe6f0; }
 
-.aviso { padding: 11px 16px; border-radius: 6px; margin-bottom: 20px; font-size: .88rem; font-weight: 500; }
-.aviso.ok   { background: #e6f5ec; color: var(--sucesso); border: 1px solid #b9e0c9; }
-.aviso.ruim { background: #fdecea; color: var(--erro);    border: 1px solid #f3c2bd; }
+/* ------------------------------------------------------------
+   Formularios
+   ------------------------------------------------------------ */
 
-.vazio { color: var(--tinta-fraca); font-size: .88rem; font-style: italic; }
+.formulario { display: flex; flex-direction: column; gap: 18px; }
 
-.ficha-dados { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; }
-.ficha-dados dt { font-size: .74rem; text-transform: uppercase; letter-spacing: .05em; color: var(--tinta-fraca); }
-.ficha-dados dd { margin: 3px 0 0; font-size: .92rem; font-weight: 500; }
+.campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 18px; }
 
-/* --- Painel de ferias ------------------------------------------------- */
+label {
+    display: block;
+    font-size: 11px;
+    color: var(--texto-rotulo);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+}
 
-.painel-grupo { border-left: 4px solid var(--linha); }
-.painel-grupo.vencido   { border-left-color: var(--erro); }
-.painel-grupo.proximo   { border-left-color: #d79a1e; }
-.painel-grupo.regular   { border-left-color: var(--sucesso); }
-.painel-grupo.sem-regra { border-left-color: #9aa3b2; }
+input, select, textarea {
+    width: 100%;
+    padding: 9px 11px;
+    background: var(--superficie);
+    border: 1px solid var(--borda-campo);
+    border-radius: var(--raio-pequeno);
+    font-size: 13px;
+}
 
-.painel-grupo h2 { display: flex; align-items: center; gap: 10px; }
+textarea { resize: vertical; }
 
-.contador {
-    display: inline-flex;
+input:focus, select:focus, textarea:focus {
+    outline: 2px solid #dbe6f0;
+    outline-offset: -1px;
+    border-color: var(--destaque);
+}
+
+input.invalido, select.invalido, textarea.invalido { border-color: #e0b4b4; }
+
+.erro { display: block; color: var(--vermelho); font-size: 11.5px; margin-top: 5px; }
+
+.formulario-acoes {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 18px;
+    border-top: 1px solid var(--linha-tabela);
+}
+
+/* ------------------------------------------------------------
+   Listas de dados (ficha individual)
+   ------------------------------------------------------------ */
+
+.dados {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px 24px;
+    margin: 0;
+}
+
+.dados dt {
+    font-size: 11px;
+    color: var(--texto-fraco);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.dados dd { margin: 4px 0 0; overflow-wrap: anywhere; }
+.dados dd.ausente { color: var(--texto-fraco); }
+
+/* Identificacao no topo da ficha */
+
+.identidade { display: flex; align-items: center; gap: 16px; padding: 22px 24px; }
+.identidade h1 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+.identidade .subtitulo { font-size: 12.5px; color: var(--texto-fraco); margin-top: 3px; }
+.identidade .corpo { flex: 1; min-width: 0; }
+
+/* ------------------------------------------------------------
+   Periodos aquisitivos
+   ------------------------------------------------------------ */
+
+.periodos { padding: 8px 24px 22px; }
+
+.periodo {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--linha-tabela);
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.periodo:last-child { border-bottom: 0; }
+
+.periodo .intervalo { width: 160px; flex: none; }
+.periodo .intervalo .datas { font-size: 12.5px; font-weight: 500; }
+.periodo .intervalo .legenda { font-size: 11.5px; color: var(--texto-fraco); margin-top: 3px; }
+
+.periodo .numeros {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+    gap: 14px 16px;
+}
+
+.periodo .numeros .rotulo {
+    font-size: 11px;
+    color: var(--texto-fraco);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.periodo .numeros .valor { margin-top: 3px; }
+.periodo .numeros .valor.destaque { font-weight: 500; }
+.periodo .numeros .valor.apagado { color: var(--texto-fraco); }
+
+/* ------------------------------------------------------------
+   Avisos e textos auxiliares
+   ------------------------------------------------------------ */
+
+.aviso {
+    padding: 11px 16px;
+    border-radius: var(--raio-pequeno);
+    margin-bottom: 18px;
+    font-size: 12.5px;
+    border: 1px solid;
+}
+
+.aviso.ok   { background: #eaf4ee; color: var(--verde);    border-color: #d7e9de; }
+.aviso.ruim { background: #fbebeb; color: var(--vermelho); border-color: #f0d6d6; }
+
+.informativo {
+    border: 1px solid var(--borda-suave);
+    border-radius: var(--raio);
+    background: #fbfbf9;
+    padding: 14px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 12.5px;
+    color: var(--texto-medio);
+    margin-top: 14px;
+}
+
+.informativo .marcador {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid #dbe6f0;
+    background: #eef3f8;
+    color: var(--destaque);
+    font-size: 11px;
+    font-weight: 600;
+    display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 22px;
-    height: 22px;
-    padding: 0 7px;
-    border-radius: 999px;
-    background: var(--tinta);
-    color: #fff;
-    font-size: .76rem;
-    font-weight: 700;
+    margin-top: 1px;
 }
 
-.painel-grupo h2 small {
-    margin-left: auto;
-    font-size: .72rem;
-    font-weight: 500;
-    text-transform: none;
-    letter-spacing: 0;
-    color: var(--tinta-fraca);
+.nota { font-size: 11.5px; color: var(--texto-fraco); margin: 12px 0 0; max-width: 80ch; }
+
+.vazio { color: var(--texto-fraco); font-size: 12.5px; padding: 28px 16px; text-align: center; }
+
+.placeholder {
+    background: var(--superficie);
+    border: 1px dashed var(--borda-campo);
+    border-radius: var(--raio);
+    padding: 60px;
+    text-align: center;
+    color: var(--texto-fraco);
+    font-size: 12.5px;
+    font-family: 'IBM Plex Mono', monospace;
 }
 
-.nota {
-    margin: -4px 0 16px;
-    font-size: .82rem;
-    color: var(--tinta-fraca);
-    max-width: 70ch;
+/* ------------------------------------------------------------
+   Telas estreitas
+   ------------------------------------------------------------ */
+
+@media (max-width: 860px) {
+    .aplicacao { flex-direction: column; }
+    .lateral { width: 100%; height: auto; position: static; border-right: 0; border-bottom: 1px solid var(--borda); }
+    .lateral-menu { flex-direction: row; flex-wrap: wrap; }
+    .lateral-rodape { margin-top: 0; }
+    .conteudo { padding: 22px 16px 40px; }
+    .indicadores { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dados { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .periodo { flex-direction: column; gap: 14px; }
+    .periodo .intervalo { width: auto; }
 }
-
-.menu { display: flex; gap: 18px; margin-top: 6px; }
-.menu a { font-size: .82rem; }
-
-/* --- Periodos aquisitivos na ficha ------------------------------------ */
-
-.periodo-vencido td { background: #fdf3f2; }
-.periodo-proximo td { background: #fdf8ec; }

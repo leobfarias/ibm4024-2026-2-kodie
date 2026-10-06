@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/comum :: cabecalho('Registrar ocorrencia')}"></head>
+<body>
+<div class="aplicacao">
+
+    <aside th:replace="~{fragmentos/comum :: lateral('ocorrencias')}"></aside>
+
+    <main class="conteudo">
+
+        <div th:replace="~{fragmentos/comum :: avisos}"></div>
+
+        <div style="max-width:680px">
+
+            <a class="voltar" th:href="@{/ferias/painel}">&larr; Ferias</a>
+
+            <div class="cabecalho">
+                <div>
+                    <h1>Registrar ocorrencia</h1>
+                    <p class="resumo">Lancamento manual de ferias, folgas, licencas, ausencias e feriados trabalhados.</p>
+                </div>
+            </div>
+
+            <div class="cartao">
+                <div class="cartao-corpo">
+                    <form th:action="@{/ocorrencias/pagina}" th:object="${novaOcorrencia}" method="post" class="formulario">
+
+                        <div>
+                            <label for="pessoa">Pessoa</label>
+                            <select id="pessoa" name="pessoa">
+                                <option value="">Sem pessoa vinculada (ocorrencia de calendario)</option>
+                                <option th:each="p : ${pessoas}"
+                                        th:value="${p.id}"
+                                        th:selected="${novaOcorrencia.pessoa != null and novaOcorrencia.pessoa.id == p.id}"
+                                        th:text="${p.nome} + ' — ' + ${p.tipoVinculo.descricao}"></option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="tipo">Tipo de ocorrencia</label>
+                            <select id="tipo" th:field="*{tipo}"
+                                    th:classappend="${#fields.hasErrors('tipo')} ? 'invalido'">
+                                <option value="">Selecione</option>
+                                <option th:each="t : ${tiposOcorrencia}" th:value="${t}" th:text="${t.descricao}"></option>
+                            </select>
+                            <span class="erro" th:if="${#fields.hasErrors('tipo')}" th:errors="*{tipo}"></span>
+                        </div>
+
+                        <div class="campos">
+                            <div>
+                                <label for="dataInicio">Data de inicio</label>
+                                <input type="date" id="dataInicio" th:field="*{dataInicio}"
+                                       th:classappend="${#fields.hasErrors('dataInicio')} ? 'invalido'">
+                                <span class="erro" th:if="${#fields.hasErrors('dataInicio')}" th:errors="*{dataInicio}"></span>
+                            </div>
+                            <div>
+                                <label for="dataFim">Data de fim</label>
+                                <input type="date" id="dataFim" th:field="*{dataFim}"
+                                       th:classappend="${#fields.hasErrors('dataFim')} ? 'invalido'">
+                                <span class="erro" th:if="${#fields.hasErrors('dataFim')}" th:errors="*{dataFim}"></span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="situacao">Situacao</label>
+                            <select id="situacao" th:field="*{situacao}"
+                                    th:classappend="${#fields.hasErrors('situacao')} ? 'invalido'">
+                                <option th:each="s : ${situacoesOcorrencia}" th:value="${s}" th:text="${s.descricao}"></option>
+                            </select>
+                            <span class="erro" th:if="${#fields.hasErrors('situacao')}" th:errors="*{situacao}"></span>
+                        </div>
+
+                        <div>
+                            <label for="observacao">Observacao</label>
+                            <textarea id="observacao" rows="4" th:field="*{observacao}"
+                                      th:classappend="${#fields.hasErrors('observacao')} ? 'invalido'"
+                                      placeholder="Opcional — contexto, aprovacao ou documento de referencia"></textarea>
+                            <span class="erro" th:if="${#fields.hasErrors('observacao')}" th:errors="*{observacao}"></span>
+                        </div>
+
+                        <div class="formulario-acoes">
+                            <a class="botao" th:href="@{/ferias/painel}">Cancelar</a>
+                            <button type="submit" class="botao primario">Salvar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Saldo da pessoa escolhida, para evitar lancamento maior que o disponivel -->
+            <div class="informativo" th:if="${situacaoFerias != null}">
+                <span class="marcador">i</span>
+                <div th:with="s=${situacaoFerias}, urgente=${situacaoFerias.periodoMaisUrgente}">
+                    <span th:if="${!s.pessoa.possuiRegraDeFerias()}"
+                          th:text="${s.pessoa.nome} + ' possui vinculo ' + ${s.pessoa.tipoVinculo.descricao} +
+                                   ': sem regra de ferias trabalhistas. Registre a ausencia como folga ou licenca.'">
+                    </span>
+                    <span th:if="${s.pessoa.possuiRegraDeFerias() and urgente == null}"
+                          th:text="'Sem saldo de ferias disponivel para ' + ${s.pessoa.nome} + '.'"></span>
+                    <span th:if="${s.pessoa.possuiRegraDeFerias() and urgente != null}"
+                          th:text="'Saldo disponivel: ' + ${s.saldoTotal} + ' dias. Periodo mais antigo vence em ' +
+                                   ${#temporals.format(urgente.dataLimiteGozo, 'dd/MM/yyyy')} + '.'"></span>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+</div>
+</body>
+</html>

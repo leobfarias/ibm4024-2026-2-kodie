@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<!--
+    Fragmentos compartilhados por todas as telas.
+    Manter a navegacao num unico arquivo evita que ela saia de sincronia
+    entre as paginas.
+-->
+<head th:fragment="cabecalho(titulo)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="'Sistema KODIE - ' + ${titulo}">Sistema KODIE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+
+<body>
+
+<aside class="lateral" th:fragment="lateral(ativo)">
+    <div class="lateral-marca">
+        <div class="nome">KODIE</div>
+        <div class="descricao">Gestao de pessoas</div>
+    </div>
+
+    <nav class="lateral-menu">
+        <a th:href="@{/pessoas/pagina}" th:classappend="${ativo == 'pessoas'} ? 'ativo'">Pessoas</a>
+        <a th:href="@{/ferias/painel}" th:classappend="${ativo == 'ferias'} ? 'ativo'">Ferias</a>
+        <a th:href="@{/ocorrencias/pagina/nova}" th:classappend="${ativo == 'ocorrencias'} ? 'ativo'">Ocorrencias</a>
+        <a th:href="@{/modulos/calendario}" th:classappend="${ativo == 'calendario'} ? 'ativo'">Calendario</a>
+        <a th:href="@{/modulos/indicadores}" th:classappend="${ativo == 'indicadores'} ? 'ativo'">Indicadores</a>
+        <a th:href="@{/modulos/acessos}" th:classappend="${ativo == 'acessos'} ? 'ativo'">Acessos</a>
+    </nav>
+
+    <div class="lateral-rodape">
+        <div class="inicial">MT</div>
+        <div class="identificacao">
+            <div class="nome">Marina Tiago</div>
+            <div class="papel">Pessoas e Cultura</div>
+        </div>
+    </div>
+</aside>
+
+<!-- Mensagens de sucesso e erro vindas do redirect -->
+<div th:fragment="avisos">
+    <p th:if="${mensagem}" th:text="${mensagem}" class="aviso ok"></p>
+    <p th:if="${erro}" th:text="${erro}" class="aviso ruim"></p>
+</div>
+
+</body>
+</html>

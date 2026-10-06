@@ -74,6 +74,18 @@ public class Pessoa {
         this.situacao = SituacaoVinculo.ATIVO;
     }
 
+    /** Iniciais do nome, usadas no circulo de identificacao das telas. */
+    @Transient
+    public String getIniciais() {
+        if (nome == null || nome.isBlank()) {
+            return "?";
+        }
+        String[] partes = nome.trim().split("\\s+");
+        String primeira = partes[0].substring(0, 1);
+        String segunda = partes.length > 1 ? partes[partes.length - 1].substring(0, 1) : "";
+        return (primeira + segunda).toUpperCase();
+    }
+
     /** Usada pelo painel de ferias: so CLT acumula periodo aquisitivo (secao 2.4). */
     public boolean possuiRegraDeFerias() {
         return tipoVinculo != null && tipoVinculo.temRegraDeFerias();

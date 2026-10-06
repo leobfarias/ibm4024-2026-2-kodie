@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/comum :: cabecalho(${titulo})}"></head>
+<body>
+<div class="aplicacao">
+
+    <aside th:replace="~{fragmentos/comum :: lateral(${modulo})}"></aside>
+
+    <main class="conteudo">
+        <div class="cabecalho">
+            <div>
+                <h1 th:text="${titulo}">Modulo</h1>
+                <p class="resumo">Modulo previsto no escopo, ainda nao implementado.</p>
+            </div>
+        </div>
+        <div class="placeholder">tela nao incluida nesta versao</div>
+    </main>
+</div>
+</body>
+</html>

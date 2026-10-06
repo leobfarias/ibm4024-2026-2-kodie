@@ -1,212 +1,204 @@
 <!DOCTYPE html>
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="'Sistema KODIE - ' + ${pessoa.nome}">Sistema KODIE</title>
-    <link rel="stylesheet" th:href="@{/css/estilo.css}">
-</head>
+<head th:replace="~{fragmentos/comum :: cabecalho(${pessoa.nome})}"></head>
 <body>
+<div class="aplicacao">
 
-<header class="topo">
-    <h1>Sistema KODIE</h1>
-    <nav class="menu">
-        <a th:href="@{/pessoas/pagina}">Pessoas</a>
-        <a th:href="@{/ferias/painel}">Painel de ferias</a>
-    </nav>
-</header>
+    <aside th:replace="~{fragmentos/comum :: lateral('pessoas')}"></aside>
 
-<main class="conteudo">
+    <main class="conteudo">
 
-    <p th:if="${mensagem}" th:text="${mensagem}" class="aviso ok"></p>
+        <div th:replace="~{fragmentos/comum :: avisos}"></div>
 
-    <section class="cartao">
-        <h2 th:text="${pessoa.nome}">Nome da pessoa</h2>
+        <a class="voltar" th:href="@{/pessoas/pagina}">&larr; Pessoas</a>
 
-        <dl class="ficha-dados">
-            <div>
-                <dt>Cargo</dt>
-                <dd th:text="${pessoa.cargo}">Cargo</dd>
+        <div class="cartao">
+            <div class="identidade">
+                <div class="inicial grande" th:text="${pessoa.iniciais}">AN</div>
+                <div class="corpo">
+                    <h1 th:text="${pessoa.nome}">Nome</h1>
+                    <div class="subtitulo" th:text="${pessoa.cargo}">Cargo</div>
+                </div>
+                <span class="etiqueta"
+                      th:classappend="${pessoa.possuiRegraDeFerias()} ? 'azul'"
+                      th:text="${pessoa.tipoVinculo.descricao}">Vinculo</span>
             </div>
-            <div>
-                <dt>CPF</dt>
-                <dd th:text="${pessoa.cpf}">00000000000</dd>
-            </div>
-            <div>
-                <dt>E-mail</dt>
-                <dd th:text="${pessoa.email}">email</dd>
-            </div>
-            <div>
-                <dt>Vinculo</dt>
-                <dd>
-                    <span class="etiqueta"
-                          th:classappend="${pessoa.tipoVinculo.name() == 'CLT'} ? 'clt' : ''"
-                          th:text="${pessoa.tipoVinculo.descricao}">Vinculo</span>
-                </dd>
-            </div>
-            <div>
-                <dt>Situacao</dt>
-                <dd>
-                    <span class="etiqueta"
-                          th:classappend="${#strings.toLowerCase(pessoa.situacao.name())}"
-                          th:text="${pessoa.situacao.descricao}">Situacao</span>
-                </dd>
-            </div>
-            <div>
-                <dt>Data de entrada</dt>
-                <dd th:text="${#temporals.format(pessoa.dataEntrada, 'dd/MM/yyyy')}">00/00/0000</dd>
-            </div>
-            <div th:if="${pessoa.dataSaida != null}">
-                <dt>Data de saida</dt>
-                <dd th:text="${#temporals.format(pessoa.dataSaida, 'dd/MM/yyyy')}">00/00/0000</dd>
-            </div>
-            <div>
-                <dt>Regra de ferias</dt>
-                <dd th:text="${pessoa.possuiRegraDeFerias()} ? 'Aplicavel (CLT)' : 'Nao aplicavel'">-</dd>
-            </div>
-        </dl>
-    </section>
+        </div>
 
-    <section class="cartao" th:if="${ferias != null}">
-        <h2>Periodos aquisitivos de ferias</h2>
+        <div class="cartao">
+            <div class="cartao-titulo">Dados cadastrais</div>
+            <div class="cartao-corpo">
+                <dl class="dados">
+                    <div>
+                        <dt>Nome completo</dt>
+                        <dd th:text="${pessoa.nome}">Nome</dd>
+                    </div>
+                    <div>
+                        <dt>CPF</dt>
+                        <dd class="numerico" th:text="${pessoa.cpf}">00000000000</dd>
+                    </div>
+                    <div>
+                        <dt>E-mail</dt>
+                        <dd th:text="${pessoa.email}">email</dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
 
-        <p th:if="${!pessoa.possuiRegraDeFerias()}" class="nota">
-            Esta pessoa nao possui vinculo CLT: nao acumula periodo aquisitivo, nao tem
-            prazo concessivo e nao recebe alerta de vencimento. Suas pausas sao
-            registradas como ocorrencias comuns.
-        </p>
+        <div class="cartao">
+            <div class="cartao-titulo">Vinculo</div>
+            <div class="cartao-corpo">
+                <dl class="dados">
+                    <div>
+                        <dt>Tipo</dt>
+                        <dd th:text="${pessoa.tipoVinculo.descricao}">Tipo</dd>
+                    </div>
+                    <div>
+                        <dt>Cargo</dt>
+                        <dd th:text="${pessoa.cargo}">Cargo</dd>
+                    </div>
+                    <div>
+                        <dt>Situacao</dt>
+                        <dd>
+                            <span class="etiqueta"
+                                  th:classappend="${pessoa.situacao.name() == 'ATIVO'} ? 'verde'
+                                                : (${pessoa.situacao.name() == 'AFASTADO'} ? 'ambar'
+                                                : (${pessoa.situacao.name() == 'DESLIGADO'} ? 'vermelha' : ''))"
+                                  th:text="${pessoa.situacao.descricao}">Situacao</span>
+                        </dd>
+                    </div>
+                    <div>
+                        <dt>Data de entrada</dt>
+                        <dd class="numerico" th:text="${#temporals.format(pessoa.dataEntrada, 'dd/MM/yyyy')}">00/00/0000</dd>
+                    </div>
+                    <div>
+                        <dt>Data de saida</dt>
+                        <dd th:if="${pessoa.dataSaida != null}" class="numerico"
+                            th:text="${#temporals.format(pessoa.dataSaida, 'dd/MM/yyyy')}">00/00/0000</dd>
+                        <dd th:if="${pessoa.dataSaida == null}" class="ausente">&mdash;</dd>
+                    </div>
+                    <div>
+                        <dt>Regra de ferias</dt>
+                        <dd th:text="${pessoa.possuiRegraDeFerias()} ? 'Aplicavel (CLT)' : 'Nao aplicavel'">-</dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
 
-        <div th:if="${pessoa.possuiRegraDeFerias()}">
-            <p class="nota">
-                Saldo total de <strong th:text="${ferias.saldoTotal} + ' dias'">0 dias</strong>.
-                O saldo nao e armazenado: ele e calculado a partir dos periodos e das
-                ocorrencias de ferias registradas.
-            </p>
+        <div class="cartao">
+            <div class="cartao-titulo">
+                <span>Historico de ferias</span>
+                <span class="complemento" th:if="${pessoa.possuiRegraDeFerias()}"
+                      th:text="'Saldo total: ' + ${ferias.saldoTotal} + ' dias'">Saldo total</span>
+            </div>
 
-            <p th:if="${#lists.isEmpty(ferias.periodos)}" class="vazio">
-                Nenhum periodo aquisitivo completo ate o momento. O primeiro nasce ao
-                completar doze meses de vinculo.
-            </p>
+            <div class="cartao-corpo" th:unless="${pessoa.possuiRegraDeFerias()}">
+                <p class="nota" style="margin:0">
+                    Esta pessoa nao possui vinculo CLT: nao acumula periodo aquisitivo, nao tem
+                    prazo concessivo e nao recebe alerta de vencimento. Suas pausas sao
+                    registradas como ocorrencias comuns.
+                </p>
+            </div>
 
-            <table th:unless="${#lists.isEmpty(ferias.periodos)}">
+            <div th:if="${pessoa.possuiRegraDeFerias()}">
+                <div class="cartao-corpo" th:if="${#lists.isEmpty(ferias.periodos)}">
+                    <p class="nota" style="margin:0">
+                        Nenhum periodo aquisitivo completo ate o momento. O primeiro nasce ao
+                        completar doze meses de vinculo.
+                    </p>
+                </div>
+
+                <div class="periodos" th:unless="${#lists.isEmpty(ferias.periodos)}">
+                    <div class="periodo" th:each="p : ${ferias.periodos}">
+                        <div class="intervalo">
+                            <div class="datas numerico"
+                                 th:text="${#temporals.format(p.periodo.dataInicio, 'dd/MM/yyyy')} + ' – ' + ${#temporals.format(p.periodo.dataFim, 'dd/MM/yyyy')}">
+                                periodo
+                            </div>
+                            <div class="legenda">Periodo aquisitivo</div>
+                        </div>
+
+                        <div class="numeros">
+                            <div>
+                                <div class="rotulo">Direito</div>
+                                <div class="valor numerico" th:text="${p.periodo.diasDeDireito} + ' dias'">30 dias</div>
+                            </div>
+                            <div>
+                                <div class="rotulo">Gozados</div>
+                                <div class="valor numerico" th:text="${p.diasGozados} + ' dias'">0 dias</div>
+                            </div>
+                            <div>
+                                <div class="rotulo">Saldo</div>
+                                <div class="valor numerico"
+                                     th:classappend="${p.saldo > 0} ? 'destaque' : 'apagado'"
+                                     th:text="${p.saldo} + ' dias'">0 dias</div>
+                            </div>
+                            <div>
+                                <div class="rotulo">Prazo de ferias</div>
+                                <div class="valor numerico"
+                                     th:text="${#temporals.format(p.periodo.dataLimiteGozo, 'dd/MM/yyyy')}">00/00/0000</div>
+                            </div>
+                        </div>
+
+                        <span th:if="${p.vencido}" class="etiqueta vermelha"
+                              th:text="'Vencido ha ' + ${-p.diasAteOLimite} + ' dias'">Vencido</span>
+                        <span th:if="${p.proximoDoVencimento}" class="etiqueta ambar"
+                              th:text="'Faltam ' + ${p.diasAteOLimite} + ' dias'">A vencer</span>
+                        <span th:if="${!p.vencido and !p.proximoDoVencimento and p.saldo > 0}"
+                              class="etiqueta verde">Regular</span>
+                        <span th:if="${p.saldo == 0}" class="etiqueta verde">Quitado</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cartao">
+            <div class="cartao-titulo">
+                <span>Ocorrencias</span>
+                <a class="botao" th:href="@{/ocorrencias/pagina/nova(pessoaId=${pessoa.id})}">Registrar ocorrencia</a>
+            </div>
+
+            <table th:unless="${#lists.isEmpty(ocorrencias)}">
                 <thead>
                 <tr>
-                    <th>#</th><th>Inicio</th><th>Fim</th><th>Direito</th>
-                    <th>Gozados</th><th>Saldo</th><th>Prazo final</th><th>Situacao</th>
+                    <th>Tipo</th>
+                    <th>Inicio</th>
+                    <th>Fim</th>
+                    <th>Dias</th>
+                    <th>Situacao</th>
+                    <th>Observacao</th>
+                    <th></th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="p : ${ferias.periodos}"
-                    th:classappend="${p.vencido} ? 'periodo-vencido' : (${p.proximoDoVencimento} ? 'periodo-proximo' : '')">
-                    <td th:text="${p.periodo.numero}">1</td>
-                    <td th:text="${#temporals.format(p.periodo.dataInicio, 'dd/MM/yyyy')}">00/00/0000</td>
-                    <td th:text="${#temporals.format(p.periodo.dataFim, 'dd/MM/yyyy')}">00/00/0000</td>
-                    <td th:text="${p.periodo.diasDeDireito}">30</td>
-                    <td th:text="${p.diasGozados}">0</td>
-                    <td><strong th:text="${p.saldo}">0</strong></td>
-                    <td th:text="${#temporals.format(p.periodo.dataLimiteGozo, 'dd/MM/yyyy')}">00/00/0000</td>
+                <tr th:each="o : ${ocorrencias}">
+                    <td class="principal" th:text="${o.tipo.descricao}">Tipo</td>
+                    <td class="numerico" th:text="${#temporals.format(o.dataInicio, 'dd/MM/yyyy')}">00/00/0000</td>
+                    <td class="numerico" th:text="${#temporals.format(o.dataFim, 'dd/MM/yyyy')}">00/00/0000</td>
+                    <td class="numerico" th:text="${o.totalDeDias}">0</td>
                     <td>
-                        <span th:if="${p.vencido}" class="etiqueta desligado"
-                              th:text="'Vencido ha ' + ${-p.diasAteOLimite} + ' dias'">Vencido</span>
-                        <span th:if="${p.proximoDoVencimento}" class="etiqueta afastado"
-                              th:text="'Faltam ' + ${p.diasAteOLimite} + ' dias'">Proximo</span>
-                        <span th:if="${!p.vencido and !p.proximoDoVencimento and p.saldo > 0}"
-                              class="etiqueta ativo">Regular</span>
-                        <span th:if="${p.saldo == 0}" class="etiqueta">Totalmente gozado</span>
+                        <span class="etiqueta"
+                              th:classappend="${o.situacao.name() == 'CONFIRMADA'} ? 'verde'
+                                            : (${o.situacao.name() == 'CANCELADA'} ? 'vermelha' : '')"
+                              th:text="${o.situacao.descricao}">Situacao</span>
+                    </td>
+                    <td th:text="${o.observacao != null and !o.observacao.isBlank()} ? ${o.observacao} : '—'">—</td>
+                    <td>
+                        <form th:action="@{/ocorrencias/pagina/{id}/excluir(id=${o.id})}" method="post">
+                            <input type="hidden" name="pessoaId" th:value="${pessoa.id}">
+                            <button type="submit" class="botao texto">excluir</button>
+                        </form>
                     </td>
                 </tr>
                 </tbody>
             </table>
-        </div>
-    </section>
 
-    <section class="cartao">
-        <h2>Registrar ocorrencia</h2>
-
-        <form th:action="@{/pessoas/pagina/{id}/ocorrencias(id=${pessoa.id})}"
-              th:object="${novaOcorrencia}" method="post">
-            <div class="campos">
-
-                <div>
-                    <label for="tipo">Tipo</label>
-                    <select id="tipo" th:field="*{tipo}">
-                        <option value="">Selecione</option>
-                        <option th:each="t : ${tiposOcorrencia}"
-                                th:value="${t}" th:text="${t.descricao}"></option>
-                    </select>
-                    <span class="erro" th:if="${#fields.hasErrors('tipo')}" th:errors="*{tipo}"></span>
-                </div>
-
-                <div>
-                    <label for="dataInicio">Data de inicio</label>
-                    <input type="date" id="dataInicio" th:field="*{dataInicio}">
-                    <span class="erro" th:if="${#fields.hasErrors('dataInicio')}" th:errors="*{dataInicio}"></span>
-                </div>
-
-                <div>
-                    <label for="dataFim">Data de fim</label>
-                    <input type="date" id="dataFim" th:field="*{dataFim}">
-                    <span class="erro" th:if="${#fields.hasErrors('dataFim')}" th:errors="*{dataFim}"></span>
-                </div>
-
-                <div>
-                    <label for="situacaoOcorrencia">Situacao</label>
-                    <select id="situacaoOcorrencia" th:field="*{situacao}">
-                        <option th:each="s : ${situacoesOcorrencia}"
-                                th:value="${s}" th:text="${s.descricao}"></option>
-                    </select>
-                    <span class="erro" th:if="${#fields.hasErrors('situacao')}" th:errors="*{situacao}"></span>
-                </div>
-
-                <div>
-                    <label for="observacao">Observacao</label>
-                    <input type="text" id="observacao" th:field="*{observacao}" placeholder="Opcional">
-                    <span class="erro" th:if="${#fields.hasErrors('observacao')}" th:errors="*{observacao}"></span>
-                </div>
-
+            <div class="cartao-corpo" th:if="${#lists.isEmpty(ocorrencias)}">
+                <p class="nota" style="margin:0">Nenhuma ocorrencia registrada para esta pessoa.</p>
             </div>
-            <button type="submit">Registrar ocorrencia</button>
-        </form>
-    </section>
+        </div>
 
-    <section class="cartao">
-        <h2>Ocorrencias registradas</h2>
-
-        <p th:if="${#lists.isEmpty(ocorrencias)}" class="vazio">
-            Nenhuma ocorrencia registrada para esta pessoa.
-        </p>
-
-        <table th:unless="${#lists.isEmpty(ocorrencias)}">
-            <thead>
-            <tr>
-                <th>Tipo</th>
-                <th>Inicio</th>
-                <th>Fim</th>
-                <th>Dias</th>
-                <th>Situacao</th>
-                <th>Observacao</th>
-                <th></th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="o : ${ocorrencias}">
-                <td th:text="${o.tipo.descricao}">Tipo</td>
-                <td th:text="${#temporals.format(o.dataInicio, 'dd/MM/yyyy')}">00/00/0000</td>
-                <td th:text="${#temporals.format(o.dataFim, 'dd/MM/yyyy')}">00/00/0000</td>
-                <td th:text="${o.totalDeDias}">0</td>
-                <td><span class="etiqueta" th:text="${o.situacao.descricao}">Situacao</span></td>
-                <td th:text="${o.observacao != null and !o.observacao.isBlank()} ? ${o.observacao} : '-'">-</td>
-                <td>
-                    <form th:action="@{/pessoas/pagina/{p}/ocorrencias/{o}/excluir(p=${pessoa.id},o=${o.id})}"
-                          method="post">
-                        <button type="submit" class="discreto">excluir</button>
-                    </form>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-    </section>
-
-</main>
+    </main>
+</div>
 </body>
 </html>

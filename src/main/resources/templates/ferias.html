@@ -1,114 +1,116 @@
 <!DOCTYPE html>
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Sistema KODIE - Painel de ferias</title>
-    <link rel="stylesheet" th:href="@{/css/estilo.css}">
-</head>
+<head th:replace="~{fragmentos/comum :: cabecalho('Ferias')}"></head>
 <body>
+<div class="aplicacao">
 
-<header class="topo">
-    <h1>Painel de ferias</h1>
-    <nav class="menu">
-        <a th:href="@{/pessoas/pagina}">Pessoas</a>
-        <a th:href="@{/ferias/painel}">Painel de ferias</a>
-    </nav>
-</header>
+    <aside th:replace="~{fragmentos/comum :: lateral('ferias')}"></aside>
 
-<main class="conteudo">
+    <main class="conteudo">
 
-    <section class="cartao painel-grupo vencido">
-        <h2>Vencidas <span class="contador" th:text="${#lists.size(vencidos)}">0</span></h2>
-        <p th:if="${#lists.isEmpty(vencidos)}" class="vazio">Ninguem com ferias vencidas.</p>
-        <table th:unless="${#lists.isEmpty(vencidos)}">
-            <thead>
-            <tr><th>Pessoa</th><th>Cargo</th><th>Saldo</th><th>Prazo final</th><th>Situacao</th></tr>
-            </thead>
-            <tbody>
-            <tr th:each="s : ${vencidos}">
-                <td><a th:href="@{/pessoas/pagina/{id}(id=${s.pessoa.id})}" th:text="${s.pessoa.nome}">Nome</a></td>
-                <td th:text="${s.pessoa.cargo}">Cargo</td>
-                <td><strong th:text="${s.saldoTotal} + ' dias'">0 dias</strong></td>
-                <td th:with="p=${s.periodoMaisUrgente}"
-                    th:text="${p != null} ? ${#temporals.format(p.dataLimiteGozo, 'dd/MM/yyyy')} : '-'">-</td>
-                <td th:with="p=${s.periodoMaisUrgente}">
-                    <span class="etiqueta desligado"
-                          th:text="${p != null} ? 'Vencida ha ' + ${-p.diasAteOLimite} + ' dias' : '-'">-</span>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-    </section>
+        <div th:replace="~{fragmentos/comum :: avisos}"></div>
 
-    <section class="cartao painel-grupo proximo">
-        <h2>Proximas do vencimento
-            <span class="contador" th:text="${#lists.size(proximos)}">0</span>
-            <small th:text="'alerta com ' + ${diasDeAlerta} + ' dias de antecedencia'"></small>
-        </h2>
-        <p th:if="${#lists.isEmpty(proximos)}" class="vazio">Nenhum prazo se aproximando.</p>
-        <table th:unless="${#lists.isEmpty(proximos)}">
-            <thead>
-            <tr><th>Pessoa</th><th>Cargo</th><th>Saldo</th><th>Prazo final</th><th>Situacao</th></tr>
-            </thead>
-            <tbody>
-            <tr th:each="s : ${proximos}">
-                <td><a th:href="@{/pessoas/pagina/{id}(id=${s.pessoa.id})}" th:text="${s.pessoa.nome}">Nome</a></td>
-                <td th:text="${s.pessoa.cargo}">Cargo</td>
-                <td><strong th:text="${s.saldoTotal} + ' dias'">0 dias</strong></td>
-                <td th:with="p=${s.periodoMaisUrgente}"
-                    th:text="${p != null} ? ${#temporals.format(p.dataLimiteGozo, 'dd/MM/yyyy')} : '-'">-</td>
-                <td th:with="p=${s.periodoMaisUrgente}">
-                    <span class="etiqueta afastado"
-                          th:text="${p != null} ? 'Faltam ' + ${p.diasAteOLimite} + ' dias' : '-'">-</span>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-    </section>
+        <div class="cabecalho">
+            <div>
+                <h1>Ferias</h1>
+                <p class="resumo" th:text="'Posicao em ' + ${#temporals.format(hoje, 'dd/MM/yyyy')}">Posicao em</p>
+            </div>
+            <div class="acoes">
+                <a class="botao" th:href="@{/ocorrencias/pagina/nova}">Registrar ocorrencia</a>
+            </div>
+        </div>
 
-    <section class="cartao painel-grupo regular">
-        <h2>Regulares <span class="contador" th:text="${#lists.size(regulares)}">0</span></h2>
-        <p th:if="${#lists.isEmpty(regulares)}" class="vazio">Nenhuma pessoa neste grupo.</p>
-        <table th:unless="${#lists.isEmpty(regulares)}">
-            <thead>
-            <tr><th>Pessoa</th><th>Cargo</th><th>Saldo</th><th>Prazo final</th><th>Situacao</th></tr>
-            </thead>
-            <tbody>
-            <tr th:each="s : ${regulares}">
-                <td><a th:href="@{/pessoas/pagina/{id}(id=${s.pessoa.id})}" th:text="${s.pessoa.nome}">Nome</a></td>
-                <td th:text="${s.pessoa.cargo}">Cargo</td>
-                <td th:text="${s.saldoTotal} + ' dias'">0 dias</td>
-                <td th:with="p=${s.periodoMaisUrgente}"
-                    th:text="${p != null} ? ${#temporals.format(p.dataLimiteGozo, 'dd/MM/yyyy')} : '-'">-</td>
-                <td><span class="etiqueta ativo">Regular</span></td>
-            </tr>
-            </tbody>
-        </table>
-    </section>
+        <div class="indicadores">
+            <div class="indicador">
+                <div class="rotulo">Regular</div>
+                <div class="valor" th:text="${totalRegular}">0</div>
+                <div class="detalhe">pessoas CLT em dia</div>
+            </div>
+            <div class="indicador">
+                <div class="rotulo">A vencer</div>
+                <div class="valor ambar" th:text="${totalProximo}">0</div>
+                <div class="detalhe" th:text="'vencem em ate ' + ${diasDeAlerta} + ' dias'">vencem em breve</div>
+            </div>
+            <div class="indicador">
+                <div class="rotulo">Vencido</div>
+                <div class="valor vermelho" th:text="${totalVencido}">0</div>
+                <div class="detalhe">prazo de ferias expirado</div>
+            </div>
+            <div class="indicador">
+                <div class="rotulo">Sem regra CLT</div>
+                <div class="valor neutro" th:text="${totalSemRegra}">0</div>
+                <div class="detalhe">MEI, PJ e voluntarios</div>
+            </div>
+        </div>
 
-    <section class="cartao painel-grupo sem-regra">
-        <h2>Sem regra CLT aplicavel <span class="contador" th:text="${#lists.size(semRegra)}">0</span></h2>
+        <form class="filtros" method="get" th:action="@{/ferias/painel}">
+            <input type="search" name="busca" th:value="${busca}" placeholder="Buscar pessoa">
+
+            <select name="vinculo" onchange="this.form.submit()">
+                <option value="">Vinculo: todos</option>
+                <option th:each="t : ${tiposVinculo}"
+                        th:value="${t}" th:text="${t.descricao}"
+                        th:selected="${t == vinculoFiltro}"></option>
+            </select>
+
+            <select name="situacao" onchange="this.form.submit()">
+                <option value="">Situacao: todas</option>
+                <option th:each="s : ${situacoesFerias}"
+                        th:value="${s}" th:text="${s.descricao}"
+                        th:selected="${s == situacaoFiltro}"></option>
+            </select>
+
+            <button type="submit" class="botao">Filtrar</button>
+            <a th:if="${filtrando}" class="botao" th:href="@{/ferias/painel}">Limpar</a>
+        </form>
+
+        <div class="quadro">
+            <table>
+                <thead>
+                <tr>
+                    <th>Pessoa</th>
+                    <th>Vinculo</th>
+                    <th>Saldo</th>
+                    <th>Vence em</th>
+                    <th>Situacao</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(situacoes)}">
+                    <td colspan="5" class="vazio">Nenhuma pessoa corresponde aos filtros aplicados.</td>
+                </tr>
+                <tr th:each="s : ${situacoes}" th:with="urgente=${s.periodoMaisUrgente}">
+                    <td class="principal">
+                        <a th:href="@{/pessoas/pagina/{id}(id=${s.pessoa.id})}" th:text="${s.pessoa.nome}">Nome</a>
+                    </td>
+                    <td th:text="${s.pessoa.tipoVinculo.descricao}">Vinculo</td>
+
+                    <td class="numerico"
+                        th:text="${s.pessoa.possuiRegraDeFerias()} ? ${s.saldoTotal} + ' dias' : '—'">—</td>
+
+                    <td class="numerico"
+                        th:text="${urgente != null}
+                                 ? ${#temporals.format(urgente.dataLimiteGozo, 'dd/MM/yyyy')} : '—'">—</td>
+
+                    <td>
+                        <span class="etiqueta"
+                              th:classappend="${s.situacao.name() == 'REGULAR'} ? 'verde'
+                                            : (${s.situacao.name() == 'PROXIMO_DO_VENCIMENTO'} ? 'ambar'
+                                            : (${s.situacao.name() == 'VENCIDO'} ? 'vermelha' : ''))"
+                              th:text="${s.situacao.descricao}">Situacao</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
         <p class="nota">
-            Prestadores MEI e PJ e voluntarios constam do mesmo cadastro, mas sem saldo,
-            sem prazo concessivo e sem alerta de vencimento. Suas pausas sao registradas
-            como ocorrencias comuns.
+            Colaboradores MEI, PJ e voluntarios nao possuem ferias trabalhistas: os campos
+            de saldo e vencimento nao se aplicam. O saldo nao e armazenado, e calculado a
+            partir dos periodos aquisitivos e das ocorrencias de ferias registradas.
         </p>
-        <p th:if="${#lists.isEmpty(semRegra)}" class="vazio">Nenhuma pessoa neste grupo.</p>
-        <table th:unless="${#lists.isEmpty(semRegra)}">
-            <thead>
-            <tr><th>Pessoa</th><th>Cargo</th><th>Vinculo</th></tr>
-            </thead>
-            <tbody>
-            <tr th:each="s : ${semRegra}">
-                <td><a th:href="@{/pessoas/pagina/{id}(id=${s.pessoa.id})}" th:text="${s.pessoa.nome}">Nome</a></td>
-                <td th:text="${s.pessoa.cargo}">Cargo</td>
-                <td><span class="etiqueta" th:text="${s.pessoa.tipoVinculo.descricao}">Vinculo</span></td>
-            </tr>
-            </tbody>
-        </table>
-    </section>
 
-</main>
+    </main>
+</div>
 </body>
 </html>
