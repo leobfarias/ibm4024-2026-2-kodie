@@ -4,7 +4,7 @@ Sistema de gestão de pessoas para a KODIE Academy, desenvolvido para a discipli
 Projeto Back-end do Ibmec.
 
 **Integrantes:** Guilherme Schütz · Leonardo Farias
-**Matrícula:** _(preencher)_
+**Matrícula:** 202507185128 · 202507013939
 **Professor:** Luis Fernando Barreto
 **Cliente:** Marina Tiago — KODIE Academy
 
