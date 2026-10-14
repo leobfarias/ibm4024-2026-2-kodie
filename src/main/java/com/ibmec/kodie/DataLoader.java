@@ -4,6 +4,9 @@ import com.ibmec.kodie.model.*;
 import com.ibmec.kodie.repository.OcorrenciaRepository;
 import com.ibmec.kodie.repository.PessoaRepository;
 import com.ibmec.kodie.service.UsuarioService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -11,29 +14,53 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 
 /**
- * Carga inicial do banco em memoria.
+ * Carga de demonstracao.
  *
  * Todos os dados sao ficticios, conforme a exigencia da secao 3.4 do
  * documento de decisoes. Nenhum dado real da KODIE Academy e usado.
+ *
+ * Com o banco persistente, a carga so acontece quando o cadastro esta
+ * vazio: na primeira execucao, ou depois que a pasta de dados e apagada.
+ * Rodar a cada inicializacao duplicaria os registros - e o CPF repetido
+ * impediria a aplicacao de subir. Em producao fica desligada
+ * (kodie.dados-demonstracao=false).
  */
 @Component
 @Order(2)
 public class DataLoader implements CommandLineRunner {
 
+    private static final Logger log = LoggerFactory.getLogger(DataLoader.class);
+
     private final PessoaRepository pessoaRepository;
     private final OcorrenciaRepository ocorrenciaRepository;
     private final UsuarioService usuarioService;
+    private final boolean habilitada;
 
     public DataLoader(PessoaRepository pessoaRepository,
                       OcorrenciaRepository ocorrenciaRepository,
-                      UsuarioService usuarioService) {
+                      UsuarioService usuarioService,
+                      @Value("${kodie.dados-demonstracao}") boolean habilitada) {
         this.pessoaRepository = pessoaRepository;
         this.ocorrenciaRepository = ocorrenciaRepository;
         this.usuarioService = usuarioService;
+        this.habilitada = habilitada;
     }
 
     @Override
     public void run(String... args) {
+        if (!habilitada) {
+            log.info(">>> DataLoader: carga de demonstracao desligada (kodie.dados-demonstracao=false)");
+            return;
+        }
+        if (pessoaRepository.count() > 0 || ocorrenciaRepository.count() > 0) {
+            log.info(">>> DataLoader: banco ja possui dados ({} pessoas, {} ocorrencias) - nada a carregar",
+                    pessoaRepository.count(), ocorrenciaRepository.count());
+            return;
+        }
+        carregar();
+    }
+
+    private void carregar() {
 
         // --- Usuario de demonstracao com perfil de visualizacao ----------------
         // O administrador e criado pelo UsuarioInicial, a partir das propriedades.
@@ -85,8 +112,8 @@ public class DataLoader implements CommandLineRunner {
                 TipoOcorrencia.FERIADO_TRABALHADO, LocalDate.of(2026, 11, 20), LocalDate.of(2026, 11, 20),
                 SituacaoOcorrencia.PLANEJADA, "Evento aberto da KODIE Academy", null));
 
-        System.out.println(">>> DataLoader: " + pessoaRepository.count() + " pessoas e "
-                + ocorrenciaRepository.count() + " ocorrencias carregadas (dados ficticios)");
+        log.info(">>> DataLoader: {} pessoas e {} ocorrencias carregadas (dados ficticios)",
+                pessoaRepository.count(), ocorrenciaRepository.count());
 
         // Eduardo entra sem nenhuma ocorrencia, para a listagem exibir o total zero.
         if (eduardo.getId() == null) {

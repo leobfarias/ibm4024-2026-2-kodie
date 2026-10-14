@@ -35,11 +35,12 @@ Essas senhas existem só para desenvolvimento e correção. No servidor, a senha
 administrador inicial deve vir da variável de ambiente `KODIE_ADMIN_SENHA` (ver
 [Usuários e acesso](#usuários-e-acesso)).
 
-Dados de conexão do H2: URL `jdbc:h2:mem:kodiedb`, usuário `sa`, senha em branco. O
-console exige antes o login de um administrador no sistema.
+Dados de conexão do H2: URL **`jdbc:h2:file:./dados/kodiedb`**, usuário `sa`, senha em
+branco. O console exige antes o login de um administrador no sistema.
 
-O banco é em memória: ele é recriado a cada inicialização e populado pelo `DataLoader`
-com dados fictícios.
+**Os dados ficam salvos** na pasta `dados/`, criada na primeira execução: fechar e abrir
+a aplicação não perde nada. Na primeira execução o `DataLoader` preenche o banco com
+dados fictícios. Para recomeçar do zero, pare a aplicação e apague a pasta `dados/`.
 
 **Requisitos:** JDK 25 ou superior. O Maven não precisa estar instalado — o wrapper
 (`./mvnw`) baixa a versão correta sozinho.
@@ -271,6 +272,88 @@ O exemplo dado pela cliente na questão 7 é reproduzido pelo `DataLoader` e con
 
 ---
 
+## Persistência e banco de dados
+
+Os dados sobrevivem ao fechamento da aplicação e a quedas abruptas.
+
+### Dois ambientes
+
+| | Desenvolvimento (padrão) | Produção (perfil `prod`) |
+|---|---|---|
+| Banco | H2 gravado em arquivo, na pasta `dados/` | PostgreSQL |
+| Ativação | `./mvnw spring-boot:run` | `SPRING_PROFILES_ACTIVE=prod` |
+| Carga de demonstração | Sim, se o banco estiver vazio | Não |
+| Console do H2 | Sim, só para administrador | Desligado |
+| Credenciais | Padrão de desenvolvimento | Variáveis de ambiente |
+
+A pasta `dados/` está no `.gitignore`: o banco nunca vai para o repositório.
+
+### Schema versionado com Flyway
+
+As tabelas não são mais criadas pelo Hibernate. Elas são definidas em scripts SQL
+numerados, em `src/main/resources/db/migration`:
+
+```
+V1__schema_inicial.sql      pessoa, ocorrencia, periodo_aquisitivo, usuario
+```
+
+Na inicialização, o Flyway aplica apenas os scripts que ainda não rodaram naquele banco
+e registra cada um na tabela `flyway_schema_history`. Depois disso, o Hibernate apenas
+**confere** se as entidades batem com as tabelas (`ddl-auto=validate`) e recusa subir se
+não baterem. Ele nunca altera o banco por conta própria.
+
+Duas regras para quem for alterar o modelo:
+
+- **Uma migração já aplicada nunca é editada.** O Flyway detecta a alteração e recusa
+  subir. Toda mudança de schema entra num arquivo novo: `V2__...`, `V3__...`.
+- **O SQL precisa rodar no H2 e no PostgreSQL.** Por isso os enums do Java são gravados
+  como `varchar` com restrição `CHECK`: o tipo `enum` não existe da mesma forma nos dois
+  bancos.
+
+O SQL da V1 também reforça no banco regras que antes existiam só na aplicação. Por
+exemplo, `ck_ocorrencia_periodo` impede que a data de fim seja anterior à de início,
+mesmo para um `INSERT` feito direto pelo console.
+
+### Durabilidade
+
+O H2 roda com `WRITE_DELAY=0`, ou seja, grava no arquivo a cada transação confirmada.
+Por padrão ele acumula até 500 ms de gravações, e uma queda abrupta nessa janela
+perderia registros que a aplicação já tinha confirmado ao usuário. Isso foi testado:
+com o padrão, um cadastro respondido com 201 se perdeu ao matar o processo
+(`kill -9`) logo em seguida; com `WRITE_DELAY=0`, cinco rodadas seguidas do mesmo teste
+não perderam nenhum registro.
+
+### Produção com PostgreSQL
+
+O perfil `prod` lê tudo de variáveis de ambiente. Nenhuma credencial fica no código.
+
+| Variável | Exemplo | Obrigatória |
+|---|---|---|
+| `SPRING_PROFILES_ACTIVE` | `prod` | sim |
+| `DATABASE_URL` | `jdbc:postgresql://servidor:5432/kodie` | sim |
+| `DATABASE_USERNAME` | `kodie` | sim |
+| `DATABASE_PASSWORD` | — | sim |
+| `KODIE_ADMIN_SENHA` | — | sim, na primeira subida |
+| `KODIE_ADMIN_LOGIN` | `admin` | não |
+| `PORT` | `8080` | não; a hospedagem costuma definir |
+
+`DATABASE_URL` precisa estar no **formato JDBC**. Alguns provedores entregam
+`postgres://usuario:senha@servidor/banco`, que precisa ser convertido.
+
+Para rodar o perfil de produção numa máquina local, copie `.env.exemplo` para `.env`,
+preencha as variáveis e execute `./rodar-producao.sh`. O script confere se nada ficou em
+branco e se a URL está no formato JDBC antes de subir. O `.env` está no `.gitignore`: as
+senhas nunca vão para o repositório.
+
+`KODIE_ADMIN_SENHA` só vale **na primeira subida**, quando o administrador é criado.
+Mudá-la depois não altera a senha de quem já existe; para isso, use a tela "Minha senha".
+
+O perfil `prod` foi validado contra um **PostgreSQL 18** antes da entrega: migração
+aplicada, entidades validadas, CRUD completo, filtros, caso de validação de férias e
+reinício com os dados preservados.
+
+---
+
 ## Usuários e acesso
 
 Implementado com **Spring Security**, o framework de segurança da própria stack Spring.
@@ -344,9 +427,13 @@ indica explicitamente se a regra de férias é aplicável. O método
 
 ## Carga inicial (DataLoader)
 
-Executada a cada inicialização, com **dados exclusivamente fictícios**, conforme a
-exigência da seção 3.4 do documento de decisões. Nenhum dado real da KODIE Academy é
-utilizado.
+Executada **somente quando o banco está vazio**: na primeira execução, ou depois que a
+pasta `dados/` é apagada. Com o banco persistente, rodar a cada inicialização duplicaria
+os registros, e o CPF repetido impediria a aplicação de subir. Em produção fica
+desligada (`KODIE_DADOS_DEMONSTRACAO=false`).
+
+Usa **dados exclusivamente fictícios**, conforme a exigência da seção 3.4 do documento
+de decisões. Nenhum dado real da KODIE Academy é utilizado.
 
 - 4 pessoas — uma CLT, uma CLT, uma PJ e uma voluntária
 - 4 ocorrências vinculadas a pessoas
@@ -401,7 +488,7 @@ curl -i -u consulta:consulta2026 -X DELETE http://localhost:8080/pessoas/1
 ## Tecnologias
 
 Java 25 · Spring Boot 4.1.1 · Spring Web · Spring Data JPA · Hibernate · Bean Validation ·
-Spring Security · Thymeleaf · H2 em memória · Maven.
+Spring Security · Thymeleaf · Flyway · H2 (desenvolvimento) · PostgreSQL (produção) · Maven.
 
 O front-end é HTML, CSS e Thymeleaf renderizado no servidor, sem framework de JavaScript
 e sem etapa de build de front-end. A única dependência externa é a fonte IBM Plex,

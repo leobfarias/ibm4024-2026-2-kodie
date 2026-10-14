@@ -42,12 +42,16 @@ public class PessoaService {
     }
 
     /**
-     * Mesma listagem, restringida pelos filtros da tela. Parametros em branco
-     * sao convertidos em nulo para desligar o criterio correspondente.
+     * Mesma listagem, restringida pelos filtros da tela.
+     *
+     * A busca vira um padrao LIKE ja pronto - "%ana%" -, ou apenas "%"
+     * quando esta em branco, o que casa com qualquer nome.
      */
     public List<PessoaResumo> listarResumo(String busca, TipoVinculo tipoVinculo, SituacaoVinculo situacao) {
-        String termo = (busca == null || busca.isBlank()) ? null : busca.trim();
-        return repository.buscarComFiltros(termo, tipoVinculo, situacao).stream()
+        String padrao = (busca == null || busca.isBlank())
+                ? "%"
+                : "%" + busca.trim().toLowerCase() + "%";
+        return repository.buscarComFiltros(padrao, tipoVinculo, situacao).stream()
                 .map(p -> new PessoaResumo(p, ocorrenciaRepository.countByPessoaId(p.getId())))
                 .toList();
     }

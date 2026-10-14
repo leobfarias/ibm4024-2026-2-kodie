@@ -21,20 +21,22 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
      * Consulta da tela de pessoas: busca livre por nome, e-mail ou cargo,
      * combinada com os filtros de vinculo e situacao.
      *
-     * Cada parametro nulo desliga o proprio criterio, o que permite uma unica
-     * consulta atender todas as combinacoes de filtro da tela.
+     * Vinculo e situacao nulos desligam o proprio criterio. A busca, ao
+     * contrario, NUNCA chega nula: o PessoaService entrega o padrao pronto,
+     * em minusculas e com os curingas ("%" quando nao ha busca). Um texto
+     * nulo dentro de lower() faz o PostgreSQL tratar o parametro como
+     * binario e recusar a consulta - erro que o H2 nao reproduz.
      */
     @Query("""
             select p from Pessoa p
-            where (:busca is null
-                   or lower(p.nome)  like lower(concat('%', :busca, '%'))
-                   or lower(p.email) like lower(concat('%', :busca, '%'))
-                   or lower(p.cargo) like lower(concat('%', :busca, '%')))
+            where (lower(p.nome)  like :padrao
+                   or lower(p.email) like :padrao
+                   or lower(p.cargo) like :padrao)
               and (:tipoVinculo is null or p.tipoVinculo = :tipoVinculo)
               and (:situacao    is null or p.situacao    = :situacao)
             order by p.nome asc
             """)
-    List<Pessoa> buscarComFiltros(@Param("busca") String busca,
+    List<Pessoa> buscarComFiltros(@Param("padrao") String padrao,
                                   @Param("tipoVinculo") TipoVinculo tipoVinculo,
                                   @Param("situacao") SituacaoVinculo situacao);
 
