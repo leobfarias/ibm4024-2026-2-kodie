@@ -19,6 +19,13 @@ public class SessoesDeUsuario {
         this.registro = registro;
     }
 
+    /** Usado depois de uma restauracao: os usuarios passam a ser os do backup. */
+    public void encerrarTodas() {
+        registro.getAllPrincipals().stream()
+                .flatMap(principal -> registro.getAllSessions(principal, false).stream())
+                .forEach(sessao -> sessao.expireNow());
+    }
+
     public void encerrar(String login) {
         registro.getAllPrincipals().stream()
                 .filter(principal -> principal instanceof UsuarioAutenticado usuario

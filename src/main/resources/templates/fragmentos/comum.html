@@ -31,6 +31,7 @@
         <a th:href="@{/modulos/calendario}" th:classappend="${ativo == 'calendario'} ? 'ativo'">Calendario</a>
         <a th:href="@{/modulos/indicadores}" th:classappend="${ativo == 'indicadores'} ? 'ativo'">Indicadores</a>
         <a th:if="${ehAdmin}" th:href="@{/usuarios/pagina}" th:classappend="${ativo == 'acessos'} ? 'ativo'">Acessos</a>
+        <a th:if="${ehAdmin}" th:href="@{/backup/pagina}" th:classappend="${ativo == 'backup'} ? 'ativo'">Backup</a>
     </nav>
 
     <div class="lateral-rodape" th:if="${usuarioLogado != null}">

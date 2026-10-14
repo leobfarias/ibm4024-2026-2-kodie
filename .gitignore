@@ -40,3 +40,6 @@ dados/
 
 ### Credenciais locais (nunca versionar)
 .env
+
+### Backups gravados pelo sistema (contem dados pessoais)
+backups/

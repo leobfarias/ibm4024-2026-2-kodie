@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/comum :: cabecalho('Restaurar backup')}"></head>
+<body>
+<div class="aplicacao">
+
+    <aside th:replace="~{fragmentos/comum :: lateral('backup')}"></aside>
+
+    <main class="conteudo">
+
+        <div th:replace="~{fragmentos/comum :: avisos}"></div>
+
+        <div style="max-width:760px" th:with="b=${resumo.conteudo}">
+
+            <a class="voltar" th:href="@{/backup/pagina}">&larr; Backup</a>
+
+            <div class="cabecalho">
+                <div>
+                    <h1>Restaurar backup</h1>
+                    <p class="resumo numerico" th:text="${resumo.nomeDoArquivo}">arquivo</p>
+                </div>
+            </div>
+
+            <!-- Arquivo com problemas: nada pode ser feito alem de voltar -->
+            <div class="cartao" th:unless="${resumo.restauravel}">
+                <div class="cartao-titulo">
+                    <span>Este backup nao pode ser restaurado</span>
+                    <span class="etiqueta vermelha" th:text="${#lists.size(resumo.problemas)} + ' problema(s)'">0</span>
+                </div>
+                <div class="cartao-corpo">
+                    <p style="margin:0 0 12px">Nenhum dado foi alterado. Problemas encontrados:</p>
+                    <ul style="margin:0;padding-left:18px">
+                        <li th:each="p : ${resumo.problemas}" th:text="${p}" style="margin-bottom:4px">problema</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div th:if="${resumo.restauravel}">
+                <div class="cartao">
+                    <div class="cartao-titulo">Conteudo do backup</div>
+                    <div class="cartao-corpo">
+                        <dl class="dados">
+                            <div>
+                                <dt>Gerado em</dt>
+                                <dd class="numerico" th:text="${#temporals.format(b.geradoEm, 'dd/MM/yyyy HH:mm')}">data</dd>
+                            </div>
+                            <div>
+                                <dt>Pessoas</dt>
+                                <dd class="numerico" th:text="${b.contagens.pessoas}">0</dd>
+                            </div>
+                            <div>
+                                <dt>Ocorrencias</dt>
+                                <dd class="numerico" th:text="${b.contagens.ocorrencias}">0</dd>
+                            </div>
+                            <div>
+                                <dt>Usuarios</dt>
+                                <dd class="numerico" th:text="${b.contagens.usuarios}">0</dd>
+                            </div>
+                            <div>
+                                <dt>Periodos aquisitivos</dt>
+                                <dd class="numerico" th:text="${b.contagens.periodosAquisitivos}">0</dd>
+                            </div>
+                            <div>
+                                <dt>Administradores ativos</dt>
+                                <dd th:text="${#strings.listJoin(resumo.administradoresAtivos, ', ')}">admin</dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+
+                <div class="informativo" style="margin:0 0 14px">
+                    <span class="marcador">!</span>
+                    <div>
+                        <strong>Todos os dados atuais serao substituidos pelos do backup.</strong>
+                        Antes disso, o estado atual sera salvo como um backup "Antes de restaurar".
+                        Depois da restauracao todos precisarao entrar de novo, com os usuarios e senhas
+                        que existiam no backup.
+                    </div>
+                </div>
+
+                <div class="cartao">
+                    <div class="cartao-corpo">
+                        <form th:action="@{/backup/pagina/restaurar}" method="post" class="formulario">
+                            <input type="hidden" name="arquivo" th:value="${resumo.nomeDoArquivo}">
+                            <label style="display:flex;gap:10px;align-items:flex-start;text-transform:none;letter-spacing:0;font-size:13px;color:var(--texto)">
+                                <input type="checkbox" name="confirmo" value="true" style="width:auto;margin-top:2px">
+                                Entendo que os dados atuais serao substituidos pelos deste backup.
+                            </label>
+                            <div class="formulario-acoes">
+                                <a class="botao" th:href="@{/backup/pagina}">Cancelar</a>
+                                <button type="submit" class="botao primario">Restaurar backup</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

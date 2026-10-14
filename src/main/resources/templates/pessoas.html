@@ -18,9 +18,10 @@
                     <span th:text="${totalAtivo}">0</span> ativas
                 </p>
             </div>
-            <div class="acoes" th:if="${ehAdmin}">
-                <a class="botao" th:href="@{/ocorrencias/pagina/nova}">Registrar ocorrencia</a>
-                <a class="botao primario" href="#cadastro">Nova pessoa</a>
+            <div class="acoes">
+                <a class="botao" th:href="@{/exportacao/pessoas.csv(busca=${busca},vinculo=${vinculoFiltro},situacao=${situacaoFiltro})}">Exportar CSV</a>
+                <a th:if="${ehAdmin}" class="botao" th:href="@{/ocorrencias/pagina/nova}">Registrar ocorrencia</a>
+                <a th:if="${ehAdmin}" class="botao primario" href="#cadastro">Nova pessoa</a>
             </div>
         </div>
 

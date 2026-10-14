@@ -110,6 +110,15 @@ consultam; apenas o administrador cadastra, altera e exclui.
 | GET | `/ferias` | 200 · situação de todo o cadastro |
 | GET | `/ferias/pessoa/{id}` | 200 · 404 se a pessoa não existir |
 
+### Backup e exportação
+
+| Verbo | Caminho | Perfil | Resposta |
+|---|---|---|---|
+| GET | `/backup` | Administrador | 200 · backup completo em JSON, gerado na hora |
+| GET | `/exportacao/pessoas.csv` | Os dois | 200 · aceita os filtros `busca`, `vinculo`, `situacao` |
+| GET | `/exportacao/ocorrencias.csv` | Os dois | 200 |
+| GET | `/exportacao/ferias.csv` | Os dois | 200 |
+
 ### Páginas web
 
 | Caminho | Descrição |
@@ -122,6 +131,7 @@ consultam; apenas o administrador cadastra, altera e exclui.
 | `/login` | Entrada no sistema |
 | `/usuarios/pagina` | Gestão de acessos (só administrador) |
 | `/conta/senha` | Troca da própria senha (os dois perfis) |
+| `/backup/pagina` | Backups, restauração e exportação (só administrador) |
 | `/modulos/{calendario\|indicadores}` | Módulos previstos no escopo, ainda não implementados |
 
 As telas seguem o protótipo visual validado com a cliente: navegação lateral fixa,
@@ -354,6 +364,100 @@ reinício com os dados preservados.
 
 ---
 
+## Backup, importação e exportação
+
+### O que é um backup
+
+Um arquivo JSON com **todos** os dados: usuários, pessoas, ocorrências e períodos
+aquisitivos. Restaurá-lo devolve o sistema exatamente ao estado daquele momento,
+**com os mesmos ids**, para que links e referências continuem válidos.
+
+O arquivo contém dados pessoais e os hashes das senhas. Por isso ele é gravado com
+permissão de leitura só para o usuário que roda o sistema (`rw-------`), e a pasta
+`backups/` está no `.gitignore`.
+
+Backups são gerados de quatro formas:
+
+| Tipo | Quando |
+|---|---|
+| Automático | Todo dia às 3h, horário de São Paulo. Os 14 mais recentes são mantidos |
+| Manual | Botão "Gerar backup agora", na tela de backup |
+| Antes de restaurar | Sempre, logo antes de uma restauração substituir os dados |
+| Via API | `GET /backup`, para buscar o backup a partir de outra máquina |
+
+O backup "antes de restaurar" garante que restaurar o arquivo errado nunca seja
+irreversível.
+
+### Restauração
+
+Sempre em duas etapas: o sistema **analisa** o arquivo e mostra o conteúdo dele, e só
+então o administrador **confirma**. A restauração é recusada, sem alterar nada, se o
+arquivo:
+
+- não for um JSON de backup do KODIE, ou tiver valores que o sistema não reconhece;
+- for de um formato mais novo que esta versão do sistema;
+- não tiver **nenhum administrador ativo**, porque ninguém conseguiria entrar depois;
+- tiver ids, CPFs ou logins repetidos;
+- tiver ocorrência ou período apontando para uma pessoa que não está no arquivo;
+- tiver registros que reprovam as mesmas validações dos formulários (CPF, e-mail etc.).
+
+A substituição roda numa **única transação**: se o banco recusar qualquer registro no
+meio da gravação, tudo é desfeito e os dados atuais permanecem intactos. Isso foi
+testado com um arquivo que passa em todas as validações da aplicação, mas viola uma
+restrição do banco.
+
+Depois de restaurar, todas as sessões são encerradas, inclusive a de quem restaurou:
+os usuários e as senhas passam a ser os do backup.
+
+### Exportação para planilha
+
+CSV para Excel ou Google Planilhas, disponível aos dois perfis: pessoas (com os filtros
+da tela), ocorrências e situação de férias. Os botões "Exportar CSV" ficam na lista de
+pessoas, no painel de férias e na tela de backup.
+
+O formato é pensado para o Excel em português: separador `;`, marca BOM para os acentos
+e datas em `dd/MM/aaaa`. Valores que começam com `=`, `+`, `-` ou `@` ganham um
+apóstrofo na frente. Sem isso, uma observação como `=HYPERLINK(...)` seria executada
+como fórmula ao abrir o arquivo (injeção de fórmula em CSV).
+
+O CSV serve para relatórios; **para restaurar o sistema, use o backup JSON.**
+
+### Configuração
+
+| Propriedade | Variável de ambiente | Padrão |
+|---|---|---|
+| `kodie.backup.diretorio` | `KODIE_BACKUP_DIR` | `./backups` |
+| `kodie.backup.agendamento` | `KODIE_BACKUP_AGENDAMENTO` | `0 0 3 * * *` (todo dia às 3h) |
+| `kodie.backup.manter` | `KODIE_BACKUP_MANTER` | `14` |
+
+A pasta de backups é **separada** da pasta do banco de propósito: se o banco
+corromper, os backups não vão junto.
+
+### Plano de recuperação
+
+Se o sistema não subir por causa do banco, por exemplo com a mensagem
+`File corrupted while reading record`:
+
+1. **Pare a aplicação** e mova a pasta do banco para outro lugar, sem apagá-la:
+   `mv dados dados-corrompido`.
+2. **Suba com um banco novo e vazio**, sem a carga de demonstração:
+   `KODIE_DADOS_DEMONSTRACAO=false ./mvnw spring-boot:run`. O administrador inicial é
+   criado automaticamente.
+3. **Entre como administrador**, abra **Backup**, escolha o backup mais recente e
+   restaure.
+4. Entre de novo com um usuário que existia no backup.
+
+Esse procedimento foi testado: o arquivo do banco foi corrompido de propósito, o sistema
+deixou de subir, e depois desses passos voltou idêntico ao último backup automático, com
+usuários, senhas e o cálculo de férias.
+
+**Limitação:** perde-se o que foi gravado entre o último backup e a falha, no máximo um
+dia com o agendamento padrão. E o backup no mesmo disco do banco não protege contra a
+perda do disco. **Copie os backups para fora do servidor regularmente**, baixando-os
+pela tela ou buscando-os pela API `GET /backup`.
+
+---
+
 ## Usuários e acesso
 
 Implementado com **Spring Security**, o framework de segurança da própria stack Spring.
@@ -505,8 +609,8 @@ de priorização da equipe:
 
 - **Calendário de ocorrências** em visualização mensal — o item existe na navegação e
   informa que não foi implementado.
-- **Exportação de informações** em CSV, Excel ou PDF — formato prioritário ainda não
-  definido com a cliente.
+- **Exportação em Excel (.xlsx) e PDF** — a exportação existe em CSV, que o Excel abre
+  diretamente. Os outros formatos dependem da prioridade definida pela cliente.
 - **Indicadores básicos** e indicadores de diversidade agregados — idem.
 - **Perfil de operador** — a seção 2.2 do documento prevê três perfis (administrador,
   operador de Pessoas e Cultura e consulta). Esta versão implementa dois; o operador,
@@ -525,7 +629,7 @@ Levantados na seção 5 do documento de decisões e ainda em aberto:
 - ~~tratamento do período aquisitivo durante afastamento~~ — **adotada a contagem
   contínua**, a confirmar com a cliente;
 - quais campos do cadastro entram efetivamente no MVP;
-- formatos de exportação prioritários entre CSV, Excel e PDF;
+- formatos de exportação além do CSV já implementado (Excel, PDF);
 - necessidade de acesso por dispositivos móveis.
 
 ### Campos do protótipo ausentes no modelo

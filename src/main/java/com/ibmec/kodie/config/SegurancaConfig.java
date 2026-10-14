@@ -58,6 +58,7 @@ public class SegurancaConfig {
                     .requestMatchers("/login", "/acesso-negado", "/error", "/css/**").permitAll()
                     .requestMatchers("/h2-console/**").hasRole("ADMIN")
                     .requestMatchers("/usuarios/**").hasRole("ADMIN")
+                    .requestMatchers("/backup", "/backup/**").hasRole("ADMIN")
                     .requestMatchers("/conta/**").authenticated()
                     .requestMatchers(HttpMethod.GET, "/ocorrencias/pagina/nova").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.GET, "/**").authenticated()
