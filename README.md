@@ -133,7 +133,7 @@ consultam; apenas o administrador cadastra, altera e exclui.
 | `/conta/senha` | Troca da própria senha (os dois perfis) |
 | `/backup/pagina` | Backups, restauração e exportação (só administrador) |
 | `/calendario/pagina` | Calendário mensal de ocorrências, com filtro por tipo |
-| `/modulos/indicadores` | Módulo previsto no escopo, ainda não implementado |
+| `/indicadores/pagina` | Indicadores do cadastro: quadro, vínculos, férias, ocorrências, ausências |
 
 As telas seguem o protótipo visual validado com a cliente: navegação lateral fixa,
 tipografia IBM Plex, indicadores numéricos no painel de férias e etiquetas de situação
@@ -149,6 +149,24 @@ mesma informação aparece em lista abaixo da grade, legível em tela pequena.
 
 Como os demais módulos, o calendário é uma leitura derivada do cadastro central e não
 guarda nada próprio. Uma única consulta ao banco traz as ocorrências que tocam o mês.
+
+### Indicadores
+
+Números calculados na hora a partir do cadastro central, sem nada armazenado à parte:
+
+| Indicador | Regra |
+|---|---|
+| Quadro atual | Pessoas ativas ou afastadas, ou seja, com vínculo vigente |
+| Situação do cadastro | Todas as pessoas, por situação |
+| Tipo de vínculo | Quadro atual, por CLT, MEI, PJ e voluntário |
+| Férias | Os quatro estados do painel, o saldo total e os dias já vencidos (passivo) |
+| Ocorrências no ano | Por tipo, em registros e em dias corridos **dentro do ano**: férias de 28/12 a 05/01 contam 4 dias |
+| Ausentes hoje | Férias, folga, licença ou ausência cobrindo o dia de hoje |
+| Próximos 30 dias | Ocorrências que ainda vão começar |
+| Últimos 12 meses | Admissões e desligamentos pelas datas de entrada e saída |
+
+Ocorrências canceladas não entram em nenhum indicador. **Tempo de casa** ficou de fora
+por decisão da própria cliente (seção 3.3 do documento de decisões).
 
 ### Busca e filtros
 
@@ -621,8 +639,8 @@ de priorização da equipe:
 
 - **Exportação em Excel (.xlsx) e PDF** — a exportação existe em CSV, que o Excel abre
   diretamente. Os outros formatos dependem da prioridade definida pela cliente.
-- **Indicadores básicos** e indicadores de diversidade agregados — o item existe na
-  navegação e informa que não foi implementado.
+- **Indicadores de diversidade** — dependem dos campos de cadastro ainda em definição
+  com a cliente. Quando existirem, serão exibidos apenas de forma agregada (seção 3.4).
 - **Perfil de operador** — a seção 2.2 do documento prevê três perfis (administrador,
   operador de Pessoas e Cultura e consulta). Esta versão implementa dois; o operador,
   que cadastraria sem gerenciar acessos, depende de definir com a cliente o que o

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/comum :: cabecalho('Indicadores')}"></head>
+<body>
+<div class="aplicacao">
+
+    <aside th:replace="~{fragmentos/comum :: lateral('indicadores')}"></aside>
+
+    <main class="conteudo" th:with="p=${painel}">
+
+        <div class="cabecalho">
+            <div>
+                <h1>Indicadores</h1>
+                <p class="resumo" th:text="'Posicao em ' + ${#temporals.format(p.referencia, 'dd/MM/yyyy')}">Posicao</p>
+            </div>
+        </div>
+
+        <div class="indicadores">
+            <div class="indicador">
+                <div class="rotulo">Quadro atual</div>
+                <div class="valor" th:text="${p.quadroAtual}">0</div>
+                <div class="detalhe" th:text="'ativas ou afastadas, de ' + ${p.totalCadastrado} + ' cadastradas'">detalhe</div>
+            </div>
+            <div class="indicador">
+                <div class="rotulo">Ausentes hoje</div>
+                <div class="valor" th:classappend="${#lists.size(p.ausentesHoje) > 0} ? 'ambar'" th:text="${#lists.size(p.ausentesHoje)}">0</div>
+                <div class="detalhe">ferias, folga, licenca ou ausencia</div>
+            </div>
+            <div class="indicador">
+                <div class="rotulo">Ferias vencidas</div>
+                <div class="valor" th:classappend="${p.diasDeFeriasVencidos > 0} ? 'vermelho'" th:text="${p.diasDeFeriasVencidos}">0</div>
+                <div class="detalhe" th:text="'dias, de ' + ${p.pessoasComFeriasVencidas} + ' pessoa(s)'">dias</div>
+            </div>
+            <div class="indicador">
+                <div class="rotulo">Ultimos 12 meses</div>
+                <div class="valor">
+                    <span th:text="'+' + ${p.admissoesUltimos12Meses}">+0</span>
+                    <span class="valor-secundario" th:text="'−' + ${p.desligamentosUltimos12Meses}">−0</span>
+                </div>
+                <div class="detalhe">admissoes e desligamentos</div>
+            </div>
+        </div>
+
+        <div class="grade-paineis">
+
+            <section class="cartao">
+                <div class="cartao-titulo">
+                    <span>Situacao do cadastro</span>
+                    <span class="complemento" th:text="${p.totalCadastrado} + ' pessoas'">0</span>
+                </div>
+                <div class="cartao-corpo barras">
+                    <div class="barra-linha" th:each="f : ${p.porSituacao}">
+                        <span class="barra-rotulo" th:text="${f.rotulo}">Rotulo</span>
+                        <span class="barra-trilho"><span class="barra" th:classappend="${f.cor}" th:style="'width:' + ${f.percentual} + '%'"></span></span>
+                        <span class="barra-valor numerico" th:text="${f.quantidade}">0</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="cartao">
+                <div class="cartao-titulo">
+                    <span>Tipo de vinculo</span>
+                    <span class="complemento">quadro atual</span>
+                </div>
+                <div class="cartao-corpo barras">
+                    <div class="barra-linha" th:each="f : ${p.porVinculo}">
+                        <span class="barra-rotulo" th:text="${f.rotulo}">Rotulo</span>
+                        <span class="barra-trilho"><span class="barra" th:classappend="${f.cor}" th:style="'width:' + ${f.percentual} + '%'"></span></span>
+                        <span class="barra-valor numerico" th:text="${f.quantidade} + ' · ' + ${f.percentual} + '%'">0</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="cartao">
+                <div class="cartao-titulo">
+                    <span>Ferias</span>
+                    <a class="complemento" th:href="@{/ferias/painel}">ver painel &rarr;</a>
+                </div>
+                <div class="cartao-corpo barras">
+                    <div class="barra-linha" th:each="f : ${p.feriasPorSituacao}">
+                        <span class="barra-rotulo" th:text="${f.rotulo}">Rotulo</span>
+                        <span class="barra-trilho"><span class="barra" th:classappend="${f.cor}" th:style="'width:' + ${f.percentual} + '%'"></span></span>
+                        <span class="barra-valor numerico" th:text="${f.quantidade}">0</span>
+                    </div>
+                    <p class="nota" style="margin-top:14px"
+                       th:text="'Saldo total de ' + ${p.saldoDeFeriasTotal} + ' dias entre as pessoas CLT, dos quais '
+                                + ${p.diasDeFeriasVencidos} + ' ja com o prazo de gozo vencido.'">saldo</p>
+                </div>
+            </section>
+
+            <section class="cartao">
+                <div class="cartao-titulo">
+                    <span th:text="'Ocorrencias em ' + ${p.ano}">Ocorrencias</span>
+                    <a class="complemento" th:href="@{/calendario/pagina}">ver calendario &rarr;</a>
+                </div>
+                <div class="cartao-corpo barras">
+                    <div class="barra-linha" th:each="o : ${p.ocorrenciasNoAno}">
+                        <span class="barra-rotulo">
+                            <span class="marcador-tipo" th:classappend="'tipo-' + ${#strings.toLowerCase(o.tipo.name())}"></span>
+                            <span th:text="${o.tipo.descricao}">Tipo</span>
+                        </span>
+                        <span class="barra-trilho"><span class="barra por-tipo" th:classappend="'tipo-' + ${#strings.toLowerCase(o.tipo.name())}"
+                                                          th:style="'width:' + ${o.percentual} + '%'"></span></span>
+                        <span class="barra-valor numerico" th:text="${o.dias} + ' d · ' + ${o.quantidade}">0</span>
+                    </div>
+                    <p class="nota" style="margin-top:14px">
+                        Dias corridos dentro do ano, seguidos da quantidade de registros. Canceladas
+                        nao entram.
+                    </p>
+                </div>
+            </section>
+
+            <section class="cartao">
+                <div class="cartao-titulo">
+                    <span>Ausentes hoje</span>
+                    <span class="complemento" th:text="${#lists.size(p.ausentesHoje)}">0</span>
+                </div>
+                <div class="cartao-corpo" th:if="${#lists.isEmpty(p.ausentesHoje)}">
+                    <p class="nota" style="margin:0">Ninguem ausente hoje.</p>
+                </div>
+                <ul class="lista-simples" th:unless="${#lists.isEmpty(p.ausentesHoje)}">
+                    <li th:each="o : ${p.ausentesHoje}">
+                        <a th:href="@{/pessoas/pagina/{id}(id=${o.pessoa.id})}" th:text="${o.pessoa.nome}">Nome</a>
+                        <span>
+                            <span class="marcador-tipo" th:classappend="'tipo-' + ${#strings.toLowerCase(o.tipo.name())}"></span>
+                            <span th:text="${o.tipo.descricao} + ' ate ' + ${#temporals.format(o.dataFim, 'dd/MM')}">Tipo</span>
+                        </span>
+                    </li>
+                </ul>
+            </section>
+
+            <section class="cartao">
+                <div class="cartao-titulo">
+                    <span>Proximos 30 dias</span>
+                    <span class="complemento" th:text="${#lists.size(p.proximasOcorrencias)}">0</span>
+                </div>
+                <div class="cartao-corpo" th:if="${#lists.isEmpty(p.proximasOcorrencias)}">
+                    <p class="nota" style="margin:0">Nenhuma ocorrencia programada.</p>
+                </div>
+                <ul class="lista-simples" th:unless="${#lists.isEmpty(p.proximasOcorrencias)}">
+                    <li th:each="o : ${p.proximasOcorrencias}">
+                        <a th:if="${o.pessoa != null}" th:href="@{/pessoas/pagina/{id}(id=${o.pessoa.id})}" th:text="${o.pessoa.nome}">Nome</a>
+                        <span th:if="${o.pessoa == null}">Sem pessoa vinculada</span>
+                        <span>
+                            <span class="marcador-tipo" th:classappend="'tipo-' + ${#strings.toLowerCase(o.tipo.name())}"></span>
+                            <span class="numerico" th:text="${o.tipo.descricao} + ' em ' + ${#temporals.format(o.dataInicio, 'dd/MM')}">Tipo</span>
+                        </span>
+                    </li>
+                </ul>
+            </section>
+
+        </div>
+
+        <p class="nota">
+            Todos os numeros sao calculados na hora a partir do cadastro central, sem nada
+            armazenado a parte. Indicadores de diversidade dependem dos campos de cadastro ainda
+            em definicao com a cliente; quando existirem, serao exibidos apenas de forma
+            agregada. Tempo de casa ficou fora desta versao, conforme a propria cliente.
+        </p>
+
+    </main>
+</div>
+</body>
+</html>
