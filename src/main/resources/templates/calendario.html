@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/comum :: cabecalho('Calendario')}"></head>
+<body>
+<div class="aplicacao">
+
+    <aside th:replace="~{fragmentos/comum :: lateral('calendario')}"></aside>
+
+    <main class="conteudo" th:with="c=${calendario}">
+
+        <div th:replace="~{fragmentos/comum :: avisos}"></div>
+
+        <div class="cabecalho">
+            <div>
+                <h1 th:text="${c.titulo}">Mes de 0000</h1>
+                <p class="resumo" th:text="${#lists.size(c.ocorrencias)} + ' ocorrencia(s) neste mes'">0 ocorrencias</p>
+            </div>
+            <div class="acoes">
+                <a class="botao" th:href="@{/calendario/pagina(ano=${c.anterior.year},mes=${c.anterior.monthValue},tipo=${tipoFiltro})}">&larr; Anterior</a>
+                <a class="botao" th:unless="${c.mesAtual}" th:href="@{/calendario/pagina(tipo=${tipoFiltro})}">Hoje</a>
+                <a class="botao" th:href="@{/calendario/pagina(ano=${c.proximo.year},mes=${c.proximo.monthValue},tipo=${tipoFiltro})}">Proximo &rarr;</a>
+            </div>
+        </div>
+
+        <form class="filtros" method="get" th:action="@{/calendario/pagina}">
+            <input type="hidden" name="ano" th:value="${c.mes.year}">
+            <input type="hidden" name="mes" th:value="${c.mes.monthValue}">
+            <select name="tipo" onchange="this.form.submit()">
+                <option value="">Tipo: todos</option>
+                <option th:each="t : ${tiposOcorrencia}" th:value="${t}" th:text="${t.descricao}"
+                        th:selected="${t == tipoFiltro}"></option>
+            </select>
+            <div class="legenda">
+                <span th:each="t : ${tiposOcorrencia}" class="legenda-item">
+                    <span class="marcador-tipo" th:classappend="'tipo-' + ${#strings.toLowerCase(t.name())}"></span>
+                    <span th:text="${t.descricao}">Tipo</span>
+                    <span class="numerico legenda-qtd"
+                          th:text="${c.quantidadePorTipo.containsKey(t)} ? ${c.quantidadePorTipo.get(t)} : 0">0</span>
+                </span>
+            </div>
+        </form>
+
+        <div class="calendario">
+            <div class="calendario-semana calendario-cabecalho">
+                <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sab</div>
+            </div>
+            <div class="calendario-semana" th:each="semana : ${c.semanas}">
+                <div class="calendario-dia" th:each="d : ${semana}"
+                     th:classappend="${(d.doMes ? '' : 'fora-do-mes ') + (d.hoje ? 'hoje ' : '') + (d.fimDeSemana ? 'fim-de-semana' : '')}">
+                    <div class="numero-do-dia numerico" th:text="${d.data.dayOfMonth}">1</div>
+
+                    <a th:each="o : ${d.visiveis}"
+                       class="evento"
+                       th:classappend="'tipo-' + ${#strings.toLowerCase(o.tipo.name())}"
+                       th:href="${o.pessoa != null} ? @{/pessoas/pagina/{id}(id=${o.pessoa.id})} : null"
+                       th:title="(${o.pessoa != null} ? ${o.pessoa.nome} : 'Sem pessoa vinculada') + ' - ' + ${o.tipo.descricao}
+                                 + ' (' + ${#temporals.format(o.dataInicio, 'dd/MM')} + ' a ' + ${#temporals.format(o.dataFim, 'dd/MM')} + ')'"
+                       th:text="${o.pessoa != null} ? ${#strings.arraySplit(o.pessoa.nome, ' ')[0]} : ${o.tipo.descricao}">Nome</a>
+
+                    <div class="evento-mais" th:if="${d.excedentes > 0}" th:text="'+' + ${d.excedentes} + ' outra(s)'">+1</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- A mesma informacao em lista: legivel em tela pequena e por leitores de tela -->
+        <section class="cartao" style="margin-top:22px">
+            <div class="cartao-titulo">
+                <span>Ocorrencias do mes</span>
+                <a class="botao pequeno" th:href="@{/exportacao/ocorrencias.csv}">Exportar CSV</a>
+            </div>
+            <table th:unless="${#lists.isEmpty(c.ocorrencias)}">
+                <thead>
+                <tr><th>Pessoa</th><th>Tipo</th><th>Inicio</th><th>Fim</th><th>Dias</th><th>Situacao</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="o : ${c.ocorrencias}">
+                    <td class="principal">
+                        <a th:if="${o.pessoa != null}" th:href="@{/pessoas/pagina/{id}(id=${o.pessoa.id})}" th:text="${o.pessoa.nome}">Nome</a>
+                        <span th:if="${o.pessoa == null}" class="nota" style="margin:0">Sem pessoa vinculada</span>
+                    </td>
+                    <td>
+                        <span class="marcador-tipo" th:classappend="'tipo-' + ${#strings.toLowerCase(o.tipo.name())}"></span>
+                        <span th:text="${o.tipo.descricao}">Tipo</span>
+                    </td>
+                    <td class="numerico" th:text="${#temporals.format(o.dataInicio, 'dd/MM/yyyy')}">00/00/0000</td>
+                    <td class="numerico" th:text="${#temporals.format(o.dataFim, 'dd/MM/yyyy')}">00/00/0000</td>
+                    <td class="numerico" th:text="${o.totalDeDias}">0</td>
+                    <td><span class="etiqueta" th:classappend="${o.situacao.name() == 'CONFIRMADA'} ? 'verde'"
+                              th:text="${o.situacao.descricao}">Situacao</span></td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="cartao-corpo" th:if="${#lists.isEmpty(c.ocorrencias)}">
+                <p class="nota" style="margin:0">Nenhuma ocorrencia neste mes.</p>
+            </div>
+        </section>
+
+        <p class="nota">Ocorrencias canceladas nao aparecem no calendario.</p>
+
+    </main>
+</div>
+</body>
+</html>

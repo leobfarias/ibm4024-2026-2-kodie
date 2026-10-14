@@ -132,11 +132,23 @@ consultam; apenas o administrador cadastra, altera e exclui.
 | `/usuarios/pagina` | Gestão de acessos (só administrador) |
 | `/conta/senha` | Troca da própria senha (os dois perfis) |
 | `/backup/pagina` | Backups, restauração e exportação (só administrador) |
-| `/modulos/{calendario\|indicadores}` | Módulos previstos no escopo, ainda não implementados |
+| `/calendario/pagina` | Calendário mensal de ocorrências, com filtro por tipo |
+| `/modulos/indicadores` | Módulo previsto no escopo, ainda não implementado |
 
 As telas seguem o protótipo visual validado com a cliente: navegação lateral fixa,
 tipografia IBM Plex, indicadores numéricos no painel de férias e etiquetas de situação
 em verde, âmbar, vermelho e neutro.
+
+### Calendário
+
+Grade mensal de domingo a sábado com todas as ocorrências: férias, folgas, licenças,
+ausências e feriados trabalhados, cada tipo com uma cor. Uma ocorrência de vários dias
+aparece em cada dia que ela cobre, inclusive quando atravessa a virada do mês. As
+canceladas ficam de fora. Cada dia mostra até três nomes e um "+N" para o restante, e a
+mesma informação aparece em lista abaixo da grade, legível em tela pequena.
+
+Como os demais módulos, o calendário é uma leitura derivada do cadastro central e não
+guarda nada próprio. Uma única consulta ao banco traz as ocorrências que tocam o mês.
 
 ### Busca e filtros
 
@@ -607,11 +619,10 @@ sincronia entre elas.
 Excluídos deliberadamente, conforme a seção 3.3 do documento de decisões ou por decisão
 de priorização da equipe:
 
-- **Calendário de ocorrências** em visualização mensal — o item existe na navegação e
-  informa que não foi implementado.
 - **Exportação em Excel (.xlsx) e PDF** — a exportação existe em CSV, que o Excel abre
   diretamente. Os outros formatos dependem da prioridade definida pela cliente.
-- **Indicadores básicos** e indicadores de diversidade agregados — idem.
+- **Indicadores básicos** e indicadores de diversidade agregados — o item existe na
+  navegação e informa que não foi implementado.
 - **Perfil de operador** — a seção 2.2 do documento prevê três perfis (administrador,
   operador de Pessoas e Cultura e consulta). Esta versão implementa dois; o operador,
   que cadastraria sem gerenciar acessos, depende de definir com a cliente o que o

@@ -576,3 +576,100 @@ input.invalido, select.invalido, textarea.invalido { border-color: #e0b4b4; }
 .acoes-linha form { margin: 0; }
 
 .botao.pequeno { padding: 4px 9px; font-size: 11.5px; }
+
+/* ------------------------------------------------------------
+   Calendario
+   ------------------------------------------------------------ */
+
+.tipo-ferias             { --cor-tipo: #2c5c86; --fundo-tipo: #eef3f8; }
+.tipo-folga              { --cor-tipo: #1f7a4d; --fundo-tipo: #eaf4ee; }
+.tipo-licenca            { --cor-tipo: #8a5a00; --fundo-tipo: #fdf3e0; }
+.tipo-ausencia           { --cor-tipo: #a32b2b; --fundo-tipo: #fbebeb; }
+.tipo-feriado_trabalhado { --cor-tipo: #6b4a7a; --fundo-tipo: #f3eef6; }
+
+.marcador-tipo {
+    display: inline-block;
+    width: 9px; height: 9px;
+    border-radius: 2px;
+    background: var(--cor-tipo, var(--texto-fraco));
+    margin-right: 5px;
+    vertical-align: baseline;
+}
+
+.legenda { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; font-size: 12px; color: var(--texto-medio); }
+.legenda-item { white-space: nowrap; }
+.legenda-qtd { color: var(--texto-fraco); margin-left: 3px; }
+
+.calendario {
+    background: var(--superficie);
+    border: 1px solid var(--borda);
+    border-radius: var(--raio);
+    overflow: hidden;
+}
+
+.calendario-semana { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.calendario-semana + .calendario-semana { border-top: 1px solid var(--linha-tabela); }
+
+.calendario-cabecalho div {
+    padding: 9px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--texto-rotulo);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: var(--superficie-suave);
+    border-bottom: 1px solid var(--borda);
+}
+
+.calendario-dia {
+    min-height: 104px;
+    padding: 6px 7px 8px;
+    border-left: 1px solid var(--linha-tabela);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.calendario-dia:first-child { border-left: 0; }
+.calendario-dia.fim-de-semana { background: #fbfbf9; }
+.calendario-dia.fora-do-mes { background: #f8f8f6; }
+.calendario-dia.fora-do-mes .numero-do-dia { color: #c4c4be; }
+
+.numero-do-dia { font-size: 12px; color: var(--texto-medio); margin-bottom: 2px; }
+
+.calendario-dia.hoje .numero-do-dia {
+    display: inline-flex;
+    align-self: flex-start;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px; height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--destaque);
+    color: #fff;
+    font-weight: 600;
+}
+
+.evento {
+    display: block;
+    padding: 2px 6px;
+    border-radius: 3px;
+    border-left: 3px solid var(--cor-tipo);
+    background: var(--fundo-tipo);
+    color: var(--cor-tipo);
+    font-size: 11.5px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+a.evento:hover { filter: brightness(0.96); color: var(--cor-tipo); }
+.evento-mais { font-size: 11px; color: var(--texto-fraco); padding-left: 2px; }
+
+@media (max-width: 860px) {
+    .calendario-dia { min-height: 64px; padding: 4px; }
+    .evento { font-size: 10px; padding: 1px 4px; }
+    .legenda { width: 100%; }
+}

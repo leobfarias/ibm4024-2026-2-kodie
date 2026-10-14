@@ -18,7 +18,6 @@ import java.util.Map;
 public class ModuloPrevistoController {
 
     private static final Map<String, String> TITULOS = Map.of(
-            "calendario", "Calendario",
             "indicadores", "Indicadores");
 
     @GetMapping("/{modulo}")
