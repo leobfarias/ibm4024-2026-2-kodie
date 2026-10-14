@@ -18,11 +18,25 @@ Projeto Back-end do Ibmec.
 
 | Recurso | Endereço |
 |---|---|
-| Aplicação (redireciona para o cadastro) | http://localhost:8080 |
+| Aplicação (abre a tela de login) | http://localhost:8080 |
 | Página de pessoas | http://localhost:8080/pessoas/pagina |
-| Console H2 | http://localhost:8080/h2-console |
+| Console H2 (só administrador) | http://localhost:8080/h2-console |
 
-Dados de conexão do H2: URL `jdbc:h2:mem:kodiedb`, usuário `sa`, senha em branco.
+### Acesso
+
+O sistema exige login. A carga inicial cria dois usuários, um de cada perfil:
+
+| Perfil | Login | Senha | Pode |
+|---|---|---|---|
+| Administrador | `admin` | `kodie2026` | Consultar, cadastrar, alterar, excluir e gerenciar acessos |
+| Visualização | `consulta` | `consulta2026` | Apenas consultar |
+
+Essas senhas existem só para desenvolvimento e correção. No servidor, a senha do
+administrador inicial deve vir da variável de ambiente `KODIE_ADMIN_SENHA` (ver
+[Usuários e acesso](#usuários-e-acesso)).
+
+Dados de conexão do H2: URL `jdbc:h2:mem:kodiedb`, usuário `sa`, senha em branco. O
+console exige antes o login de um administrador no sistema.
 
 O banco é em memória: ele é recriado a cada inicialização e populado pelo `DataLoader`
 com dados fictícios.
@@ -58,6 +72,14 @@ montada pelo Service com `countByPessoaId` e entregue pronta ao template.
 ---
 
 ## Endpoints
+
+**Toda a API exige usuário e senha** (HTTP Basic: `curl -u login:senha`). Os dois perfis
+consultam; apenas o administrador cadastra, altera e exclui.
+
+| Situação | Resposta |
+|---|---|
+| Sem credencial ou senha errada | **401** `{"erro":"Autenticacao necessaria: informe usuario e senha"}` |
+| Perfil de visualização tentando escrever | **403** `{"erro":"Acesso negado: o seu perfil permite apenas consulta"}` |
 
 ### Pessoas
 
@@ -96,7 +118,10 @@ montada pelo Service com `countByPessoaId` e entregue pronta ao template.
 | `/pessoas/pagina/{id}` | Ficha individual: dados, vínculo, histórico de férias e ocorrências |
 | `/ferias/painel` | Painel de férias: indicadores e tabela, com busca e filtros |
 | `/ocorrencias/pagina/nova` | Registro de ocorrência |
-| `/modulos/{calendario\|indicadores\|acessos}` | Módulos previstos no escopo, ainda não implementados |
+| `/login` | Entrada no sistema |
+| `/usuarios/pagina` | Gestão de acessos (só administrador) |
+| `/conta/senha` | Troca da própria senha (os dois perfis) |
+| `/modulos/{calendario\|indicadores}` | Módulos previstos no escopo, ainda não implementados |
 
 As telas seguem o protótipo visual validado com a cliente: navegação lateral fixa,
 tipografia IBM Plex, indicadores numéricos no painel de férias e etiquetas de situação
@@ -246,6 +271,67 @@ O exemplo dado pela cliente na questão 7 é reproduzido pelo `DataLoader` e con
 
 ---
 
+## Usuários e acesso
+
+Implementado com **Spring Security**, o framework de segurança da própria stack Spring.
+
+### Perfis
+
+| | Administrador | Visualização |
+|---|---|---|
+| Consultar pessoas, fichas, férias e ocorrências | ✓ | ✓ |
+| Cadastrar, alterar e excluir pessoas e ocorrências | ✓ | — |
+| Gerenciar usuários e perfis | ✓ | — |
+| Console do H2 | ✓ | — |
+| Trocar a própria senha | ✓ | ✓ |
+
+O perfil de visualização vê as mesmas telas, sem formulários e sem botões de escrita.
+**Esconder os botões é apenas conforto**: a regra é aplicada no servidor
+(`SegurancaConfig`), que recusa a operação mesmo que alguém monte a requisição à mão.
+
+### Duas formas de autenticação
+
+- **Telas (navegador):** login por formulário, com sessão. Formulários protegidos por
+  token CSRF, incluído automaticamente pelo Thymeleaf em todo `th:action`.
+- **API REST:** usuário e senha a cada requisição (HTTP Basic). Erros em JSON, no mesmo
+  formato do `ManipuladorDeErros`.
+
+O sistema distingue um do outro pelo cabeçalho `Accept`: o navegador que chega sem login
+vai para a tela de entrada; um cliente de API recebe 401 em JSON.
+
+### Senhas
+
+Nunca armazenadas: o banco guarda apenas o hash **BCrypt**. O formulário de novo usuário
+é um objeto separado da entidade (`NovoUsuarioForm`), para que ninguém consiga enviar um
+`senhaHash` forjado. Senhas com no mínimo 8 caracteres, e não são devolvidas ao HTML
+quando o formulário volta com erro.
+
+### Regras de negócio dos acessos
+
+- **Login único** — verificado no banco com `existsByLogin`.
+- **Sempre existe ao menos um administrador ativo** — verificado com
+  `countByPerfilAndAtivoTrue` antes de rebaixar ou desativar um administrador.
+- **Ninguém altera o próprio perfil nem se desativa** — evita que o administrador se
+  tranque fora do sistema no meio da operação.
+- **Alteração de acesso vale na hora** — desativar, mudar o perfil ou redefinir a senha
+  de alguém encerra as sessões abertas dessa pessoa. Sem isso, o perfil guardado na
+  sessão continuaria valendo até ela sair por conta própria.
+
+### Administrador inicial
+
+Criado apenas quando a tabela de usuários está vazia, a partir de propriedades que podem
+ser sobrescritas por variáveis de ambiente:
+
+| Propriedade | Variável de ambiente | Padrão |
+|---|---|---|
+| `kodie.admin.login` | `KODIE_ADMIN_LOGIN` | `admin` |
+| `kodie.admin.senha` | `KODIE_ADMIN_SENHA` | `kodie2026` |
+| `kodie.admin.nome` | `KODIE_ADMIN_NOME` | `Administrador` |
+
+Se o administrador for criado com a senha padrão, a aplicação registra um aviso no log.
+
+---
+
 ## Tratamento de vínculos não CLT
 
 Conforme a seção 2.4 do documento de decisões, prestadores MEI e PJ e voluntários **não
@@ -275,30 +361,39 @@ acumulados e dois já vencidos, e duas sem regra CLT aplicável.
 
 ## Exemplos com curl
 
+Todos os exemplos usam o administrador. Para ver o perfil de visualização sendo barrado,
+troque `-u admin:kodie2026` por `-u consulta:consulta2026` em qualquer escrita.
+
 ```bash
 # Cadastrar uma pessoa — 201
-curl -i -X POST http://localhost:8080/pessoas \
+curl -i -u admin:kodie2026 -X POST http://localhost:8080/pessoas \
   -H "Content-Type: application/json" \
   -d '{"nome":"Ana Beatriz Moreira","cpf":"12345678901","email":"ana@exemplo.com",
        "cargo":"Coordenadora","tipoVinculo":"CLT","situacao":"ATIVO",
        "dataEntrada":"2024-12-04"}'
 
 # Listar todas — 200
-curl -i http://localhost:8080/pessoas
+curl -i -u admin:kodie2026 http://localhost:8080/pessoas
 
 # Ocorrências de uma pessoa — 200, ou 404 se a pessoa não existir
-curl -i http://localhost:8080/pessoas/1/ocorrencias
-curl -i http://localhost:8080/pessoas/999/ocorrencias
+curl -i -u admin:kodie2026 http://localhost:8080/pessoas/1/ocorrencias
+curl -i -u admin:kodie2026 http://localhost:8080/pessoas/999/ocorrencias
 
 # Validação reprovada — 400 com as mensagens em português
-curl -i -X POST http://localhost:8080/pessoas \
+curl -i -u admin:kodie2026 -X POST http://localhost:8080/pessoas \
   -H "Content-Type: application/json" -d '{"nome":"","cpf":"123"}'
 
 # Registrar ocorrência vinculada a uma pessoa — 201
-curl -i -X POST http://localhost:8080/ocorrencias \
+curl -i -u admin:kodie2026 -X POST http://localhost:8080/ocorrencias \
   -H "Content-Type: application/json" \
   -d '{"tipo":"FERIAS","dataInicio":"2026-07-06","dataFim":"2026-07-20",
        "situacao":"CONFIRMADA","observacao":"15 dias","pessoa":{"id":1}}'
+
+# Sem credencial — 401
+curl -i http://localhost:8080/pessoas
+
+# Perfil de visualização tentando excluir — 403
+curl -i -u consulta:consulta2026 -X DELETE http://localhost:8080/pessoas/1
 ```
 
 ---
@@ -306,7 +401,7 @@ curl -i -X POST http://localhost:8080/ocorrencias \
 ## Tecnologias
 
 Java 25 · Spring Boot 4.1.1 · Spring Web · Spring Data JPA · Hibernate · Bean Validation ·
-Thymeleaf · H2 em memória · Maven.
+Spring Security · Thymeleaf · H2 em memória · Maven.
 
 O front-end é HTML, CSS e Thymeleaf renderizado no servidor, sem framework de JavaScript
 e sem etapa de build de front-end. A única dependência externa é a fonte IBM Plex,
@@ -326,9 +421,10 @@ de priorização da equipe:
 - **Exportação de informações** em CSV, Excel ou PDF — formato prioritário ainda não
   definido com a cliente.
 - **Indicadores básicos** e indicadores de diversidade agregados — idem.
-- **Usuário e perfil de acesso** (administrador, operador, consulta) — previstos na seção
-  2.2 do documento, não implementados. A identificação exibida no rodapé da navegação é
-  fixa, apenas ilustrativa.
+- **Perfil de operador** — a seção 2.2 do documento prevê três perfis (administrador,
+  operador de Pessoas e Cultura e consulta). Esta versão implementa dois; o operador,
+  que cadastraria sem gerenciar acessos, depende de definir com a cliente o que o
+  diferencia do administrador.
 - **Acompanhamento de aniversários** e **portal de autosserviço** — indicados pela própria
   cliente como fora do MVP.
 - **Armazenamento de arquivos de documentos** — conforme a seção 3.3, a orientação é

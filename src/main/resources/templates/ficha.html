@@ -155,7 +155,7 @@
         <div class="cartao">
             <div class="cartao-titulo">
                 <span>Ocorrencias</span>
-                <a class="botao" th:href="@{/ocorrencias/pagina/nova(pessoaId=${pessoa.id})}">Registrar ocorrencia</a>
+                <a th:if="${ehAdmin}" class="botao" th:href="@{/ocorrencias/pagina/nova(pessoaId=${pessoa.id})}">Registrar ocorrencia</a>
             </div>
 
             <table th:unless="${#lists.isEmpty(ocorrencias)}">
@@ -167,7 +167,7 @@
                     <th>Dias</th>
                     <th>Situacao</th>
                     <th>Observacao</th>
-                    <th></th>
+                    <th th:if="${ehAdmin}"></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -183,7 +183,7 @@
                               th:text="${o.situacao.descricao}">Situacao</span>
                     </td>
                     <td th:text="${o.observacao != null and !o.observacao.isBlank()} ? ${o.observacao} : '—'">—</td>
-                    <td>
+                    <td th:if="${ehAdmin}">
                         <form th:action="@{/ocorrencias/pagina/{id}/excluir(id=${o.id})}" method="post">
                             <input type="hidden" name="pessoaId" th:value="${pessoa.id}">
                             <button type="submit" class="botao texto">excluir</button>

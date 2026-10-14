@@ -515,3 +515,64 @@ input.invalido, select.invalido, textarea.invalido { border-color: #e0b4b4; }
     .periodo { flex-direction: column; gap: 14px; }
     .periodo .intervalo { width: auto; }
 }
+
+/* ------------------------------------------------------------
+   Conta do usuario logado (rodape da navegacao)
+   ------------------------------------------------------------ */
+
+.lateral-rodape { flex-direction: column; align-items: stretch; gap: 12px; }
+.lateral-rodape .usuario { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+.lateral-rodape .conta { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.lateral-rodape .conta a { font-size: 12px; color: var(--texto-medio); }
+.lateral-rodape .conta a:hover, .lateral-rodape .conta a.ativo { color: var(--destaque); }
+.lateral-rodape .conta form { margin: 0; }
+
+.lateral-rodape .conta button {
+    background: none;
+    border: 1px solid var(--borda-campo);
+    border-radius: var(--raio-pequeno);
+    padding: 4px 10px;
+    font-size: 12px;
+    color: var(--texto-medio);
+    cursor: pointer;
+}
+
+.lateral-rodape .conta button:hover { background: var(--hover); color: var(--texto); }
+
+/* ------------------------------------------------------------
+   Tela de login e paginas avulsas
+   ------------------------------------------------------------ */
+
+.tela-avulsa {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+}
+
+.caixa-avulsa {
+    width: 100%;
+    max-width: 380px;
+    background: var(--superficie);
+    border: 1px solid var(--borda);
+    border-radius: var(--raio);
+    padding: 30px 28px 26px;
+}
+
+.caixa-avulsa .marca { margin-bottom: 22px; }
+.caixa-avulsa .marca .nome { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+.caixa-avulsa .marca .descricao { font-size: 12px; color: var(--texto-fraco); margin-top: 2px; }
+
+.caixa-avulsa h1 { margin: 0 0 6px; font-size: 18px; font-weight: 600; }
+.caixa-avulsa p { margin: 0 0 18px; font-size: 12.5px; color: var(--texto-fraco); }
+
+.caixa-avulsa .botao.primario { width: 100%; padding: 10px 15px; }
+
+/* Acoes em linha na tabela de usuarios */
+
+.acoes-linha { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.acoes-linha form { margin: 0; }
+
+.botao.pequeno { padding: 4px 9px; font-size: 11.5px; }

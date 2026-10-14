@@ -27,17 +27,25 @@
     <nav class="lateral-menu">
         <a th:href="@{/pessoas/pagina}" th:classappend="${ativo == 'pessoas'} ? 'ativo'">Pessoas</a>
         <a th:href="@{/ferias/painel}" th:classappend="${ativo == 'ferias'} ? 'ativo'">Ferias</a>
-        <a th:href="@{/ocorrencias/pagina/nova}" th:classappend="${ativo == 'ocorrencias'} ? 'ativo'">Ocorrencias</a>
+        <a th:if="${ehAdmin}" th:href="@{/ocorrencias/pagina/nova}" th:classappend="${ativo == 'ocorrencias'} ? 'ativo'">Ocorrencias</a>
         <a th:href="@{/modulos/calendario}" th:classappend="${ativo == 'calendario'} ? 'ativo'">Calendario</a>
         <a th:href="@{/modulos/indicadores}" th:classappend="${ativo == 'indicadores'} ? 'ativo'">Indicadores</a>
-        <a th:href="@{/modulos/acessos}" th:classappend="${ativo == 'acessos'} ? 'ativo'">Acessos</a>
+        <a th:if="${ehAdmin}" th:href="@{/usuarios/pagina}" th:classappend="${ativo == 'acessos'} ? 'ativo'">Acessos</a>
     </nav>
 
-    <div class="lateral-rodape">
-        <div class="inicial">MT</div>
-        <div class="identificacao">
-            <div class="nome">Marina Tiago</div>
-            <div class="papel">Pessoas e Cultura</div>
+    <div class="lateral-rodape" th:if="${usuarioLogado != null}">
+        <div class="usuario">
+            <div class="inicial" th:text="${usuarioLogado.iniciais}">AD</div>
+            <div class="identificacao">
+                <div class="nome" th:text="${usuarioLogado.nome}">Nome</div>
+                <div class="papel" th:text="${usuarioLogado.perfil.descricao}">Perfil</div>
+            </div>
+        </div>
+        <div class="conta">
+            <a th:href="@{/conta/senha}" th:classappend="${ativo == 'conta'} ? 'ativo'">Minha senha</a>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit">Sair</button>
+            </form>
         </div>
     </div>
 </aside>

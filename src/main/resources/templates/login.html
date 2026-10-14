@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/comum :: cabecalho('Entrar')}"></head>
+<body>
+<div class="tela-avulsa">
+    <div class="caixa-avulsa">
+
+        <div class="marca">
+            <div class="nome">KODIE</div>
+            <div class="descricao">Gestao de pessoas</div>
+        </div>
+
+        <h1>Entrar</h1>
+        <p>Use o login e a senha fornecidos pela administracao.</p>
+
+        <p th:if="${param.erro}" class="aviso ruim">Login ou senha invalidos, ou usuario desativado.</p>
+        <p th:if="${param.saiu}" class="aviso ok">Voce saiu do sistema.</p>
+        <p th:if="${param.expirou}" class="aviso ruim">A sessao expirou. Entre novamente para continuar.</p>
+        <p th:if="${param.encerrada}" class="aviso ruim">Seu acesso foi alterado pela administracao. Entre novamente.</p>
+
+        <!-- POST /login e processado pelo Spring Security; o token CSRF entra pelo th:action -->
+        <form th:action="@{/login}" method="post" class="formulario">
+            <div>
+                <label for="username">Login</label>
+                <input type="text" id="username" name="username" autocomplete="username" autofocus required>
+            </div>
+            <div>
+                <label for="password">Senha</label>
+                <input type="password" id="password" name="password" autocomplete="current-password" required>
+            </div>
+            <button type="submit" class="botao primario">Entrar</button>
+        </form>
+
+    </div>
+</div>
+</body>
+</html>

@@ -3,7 +3,9 @@ package com.ibmec.kodie;
 import com.ibmec.kodie.model.*;
 import com.ibmec.kodie.repository.OcorrenciaRepository;
 import com.ibmec.kodie.repository.PessoaRepository;
+import com.ibmec.kodie.service.UsuarioService;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -15,18 +17,30 @@ import java.time.LocalDate;
  * documento de decisoes. Nenhum dado real da KODIE Academy e usado.
  */
 @Component
+@Order(2)
 public class DataLoader implements CommandLineRunner {
 
     private final PessoaRepository pessoaRepository;
     private final OcorrenciaRepository ocorrenciaRepository;
+    private final UsuarioService usuarioService;
 
-    public DataLoader(PessoaRepository pessoaRepository, OcorrenciaRepository ocorrenciaRepository) {
+    public DataLoader(PessoaRepository pessoaRepository,
+                      OcorrenciaRepository ocorrenciaRepository,
+                      UsuarioService usuarioService) {
         this.pessoaRepository = pessoaRepository;
         this.ocorrenciaRepository = ocorrenciaRepository;
+        this.usuarioService = usuarioService;
     }
 
     @Override
     public void run(String... args) {
+
+        // --- Usuario de demonstracao com perfil de visualizacao ----------------
+        // O administrador e criado pelo UsuarioInicial, a partir das propriedades.
+
+        if (usuarioService.buscarPorLogin("consulta").isEmpty()) {
+            usuarioService.criar("consulta", "Usuario de Consulta", "consulta2026", PerfilAcesso.VISUALIZADOR);
+        }
 
         // --- Pessoas: um vinculo de cada tipo ---------------------------------
 

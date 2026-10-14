@@ -18,7 +18,7 @@
                     <span th:text="${totalAtivo}">0</span> ativas
                 </p>
             </div>
-            <div class="acoes">
+            <div class="acoes" th:if="${ehAdmin}">
                 <a class="botao" th:href="@{/ocorrencias/pagina/nova}">Registrar ocorrencia</a>
                 <a class="botao primario" href="#cadastro">Nova pessoa</a>
             </div>
@@ -57,12 +57,12 @@
                     <th>Entrada</th>
                     <th>Ocorrencias</th>
                     <th>Situacao</th>
-                    <th></th>
+                    <th th:if="${ehAdmin}"></th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr th:if="${#lists.isEmpty(resumos)}">
-                    <td colspan="7" class="vazio"
+                    <td th:colspan="${ehAdmin} ? 7 : 6" class="vazio"
                         th:text="${filtrando}
                                  ? 'Nenhuma pessoa corresponde aos filtros aplicados.'
                                  : 'Nenhuma pessoa cadastrada ate o momento.'">
@@ -87,7 +87,7 @@
                                             : (${r.pessoa.situacao.name() == 'DESLIGADO'} ? 'vermelha' : ''))"
                               th:text="${r.pessoa.situacao.descricao}">Situacao</span>
                     </td>
-                    <td>
+                    <td th:if="${ehAdmin}">
                         <form th:action="@{/pessoas/pagina/{id}/excluir(id=${r.pessoa.id})}" method="post">
                             <button type="submit" class="botao texto">excluir</button>
                         </form>
@@ -100,7 +100,7 @@
             </div>
         </div>
 
-        <section class="cartao" id="cadastro" style="margin-top:22px">
+        <section class="cartao" id="cadastro" style="margin-top:22px" th:if="${ehAdmin}">
             <div class="cartao-titulo">Cadastrar pessoa</div>
             <div class="cartao-corpo">
                 <form th:action="@{/pessoas/pagina}" th:object="${novaPessoa}" method="post" class="formulario">

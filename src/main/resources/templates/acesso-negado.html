@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/comum :: cabecalho('Acesso negado')}"></head>
+<body>
+<div class="aplicacao">
+
+    <aside th:replace="~{fragmentos/comum :: lateral('')}"></aside>
+
+    <main class="conteudo">
+        <div class="cabecalho">
+            <div>
+                <h1>Acesso negado</h1>
+                <p class="resumo">O seu perfil permite apenas consultar as informacoes.</p>
+            </div>
+        </div>
+        <div class="cartao">
+            <div class="cartao-corpo">
+                <p style="margin:0 0 16px">
+                    Cadastros, alteracoes e exclusoes sao feitos por um administrador.
+                    Se voce precisa registrar algo, solicite a quem administra o sistema.
+                </p>
+                <a class="botao" th:href="@{/pessoas/pagina}">Voltar para pessoas</a>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

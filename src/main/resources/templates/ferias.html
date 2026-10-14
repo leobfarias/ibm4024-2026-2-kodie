@@ -15,7 +15,7 @@
                 <h1>Ferias</h1>
                 <p class="resumo" th:text="'Posicao em ' + ${#temporals.format(hoje, 'dd/MM/yyyy')}">Posicao em</p>
             </div>
-            <div class="acoes">
+            <div class="acoes" th:if="${ehAdmin}">
                 <a class="botao" th:href="@{/ocorrencias/pagina/nova}">Registrar ocorrencia</a>
             </div>
         </div>

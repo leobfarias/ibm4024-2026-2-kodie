@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/comum :: cabecalho(${titulo})}"></head>
+<body>
+<div class="aplicacao">
+
+    <aside th:replace="~{fragmentos/comum :: lateral(${menuAtivo})}"></aside>
+
+    <main class="conteudo">
+        <div style="max-width:520px">
+
+            <a class="voltar" th:href="@{${voltar}}">&larr; Voltar</a>
+
+            <div class="cabecalho">
+                <div>
+                    <h1 th:text="${titulo}">Senha</h1>
+                    <p class="resumo" th:text="${subtitulo}">subtitulo</p>
+                </div>
+            </div>
+
+            <div class="cartao">
+                <div class="cartao-corpo">
+                    <form th:action="@{${acao}}" th:object="${senhaForm}" method="post" class="formulario">
+
+                        <div th:if="${pedirSenhaAtual}">
+                            <label for="senhaAtual">Senha atual</label>
+                            <input type="password" id="senhaAtual" th:field="*{senhaAtual}"
+                                   autocomplete="current-password"
+                                   th:classappend="${#fields.hasErrors('senhaAtual')} ? 'invalido'">
+                            <span class="erro" th:if="${#fields.hasErrors('senhaAtual')}" th:errors="*{senhaAtual}"></span>
+                        </div>
+
+                        <div>
+                            <label for="novaSenha">Nova senha</label>
+                            <input type="password" id="novaSenha" th:field="*{novaSenha}"
+                                   autocomplete="new-password"
+                                   th:classappend="${#fields.hasErrors('novaSenha')} ? 'invalido'">
+                            <span class="erro" th:if="${#fields.hasErrors('novaSenha')}" th:errors="*{novaSenha}"></span>
+                        </div>
+
+                        <div>
+                            <label for="confirmacaoSenha">Repita a nova senha</label>
+                            <input type="password" id="confirmacaoSenha" th:field="*{confirmacaoSenha}"
+                                   autocomplete="new-password"
+                                   th:classappend="${#fields.hasErrors('confirmacaoSenha')} ? 'invalido'">
+                            <span class="erro" th:if="${#fields.hasErrors('confirmacaoSenha')}" th:errors="*{confirmacaoSenha}"></span>
+                        </div>
+
+                        <p class="nota" style="margin:0">Minimo de 8 caracteres.</p>
+
+                        <div class="formulario-acoes">
+                            <a class="botao" th:href="@{${voltar}}">Cancelar</a>
+                            <button type="submit" class="botao primario">Salvar senha</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

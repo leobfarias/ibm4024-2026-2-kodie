@@ -19,8 +19,7 @@ public class ModuloPrevistoController {
 
     private static final Map<String, String> TITULOS = Map.of(
             "calendario", "Calendario",
-            "indicadores", "Indicadores",
-            "acessos", "Acessos");
+            "indicadores", "Indicadores");
 
     @GetMapping("/{modulo}")
     public String previsto(@PathVariable String modulo, Model model) {
