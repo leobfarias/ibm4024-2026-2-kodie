@@ -22,22 +22,22 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "O login e obrigatorio")
+    @NotBlank(message = "O login é obrigatório")
     @Size(min = 3, max = 40, message = "O login deve ter entre 3 e 40 caracteres")
     @Pattern(regexp = "[a-z0-9._-]+",
-             message = "O login aceita apenas letras minusculas, numeros, ponto, hifen e sublinhado")
+             message = "O login aceita apenas letras minúsculas, números, ponto, hífen e sublinhado")
     @Column(nullable = false, unique = true, length = 40)
     private String login;
 
-    @NotBlank(message = "O nome e obrigatorio")
-    @Size(max = 120, message = "O nome deve ter no maximo 120 caracteres")
+    @NotBlank(message = "O nome é obrigatório")
+    @Size(max = 120, message = "O nome deve ter no máximo 120 caracteres")
     @Column(nullable = false, length = 120)
     private String nome;
 
     @Column(nullable = false, length = 100)
     private String senhaHash;
 
-    @NotNull(message = "O perfil de acesso e obrigatorio")
+    @NotNull(message = "O perfil de acesso é obrigatório")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private PerfilAcesso perfil;
@@ -67,13 +67,12 @@ public class Usuario {
 
     @Transient
     public String getIniciais() {
-        if (nome == null || nome.isBlank()) {
-            return "?";
-        }
-        String[] partes = nome.trim().split("\\s+");
-        String primeira = partes[0].substring(0, 1);
-        String segunda = partes.length > 1 ? partes[partes.length - 1].substring(0, 1) : "";
-        return (primeira + segunda).toUpperCase();
+        return Avatar.iniciais(nome);
+    }
+
+    @Transient
+    public String getCorAvatar() {
+        return Avatar.cor(nome);
     }
 
     public Long getId() {

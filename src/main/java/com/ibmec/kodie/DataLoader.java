@@ -66,18 +66,18 @@ public class DataLoader implements CommandLineRunner {
         // O administrador e criado pelo UsuarioInicial, a partir das propriedades.
 
         if (usuarioService.buscarPorLogin("consulta").isEmpty()) {
-            usuarioService.criar("consulta", "Usuario de Consulta", "consulta2026", PerfilAcesso.VISUALIZADOR);
+            usuarioService.criar("consulta", "Usuário de Consulta", "consulta2026", PerfilAcesso.VISUALIZADOR);
         }
 
         // --- Pessoas: um vinculo de cada tipo ---------------------------------
 
         Pessoa ana = pessoaRepository.save(new Pessoa(
                 "Ana Beatriz Moreira", "11122233344", "ana.moreira@exemplo.com",
-                "Coordenadora Pedagogica", TipoVinculo.CLT, LocalDate.of(2024, 12, 4)));
+                "Coordenadora Pedagógica", TipoVinculo.CLT, LocalDate.of(2024, 12, 4)));
 
         Pessoa carlos = pessoaRepository.save(new Pessoa(
                 "Carlos Eduardo Lima", "22233344455", "carlos.lima@exemplo.com",
-                "Instrutor de Programacao", TipoVinculo.CLT, LocalDate.of(2023, 5, 15)));
+                "Instrutor de Programação", TipoVinculo.CLT, LocalDate.of(2023, 5, 15)));
 
         Pessoa daniela = pessoaRepository.save(new Pessoa(
                 "Daniela Souza Rocha", "33344455566", "daniela.rocha@exemplo.com",
@@ -85,25 +85,25 @@ public class DataLoader implements CommandLineRunner {
 
         Pessoa eduardo = pessoaRepository.save(new Pessoa(
                 "Eduardo Nunes Pereira", "44455566677", "eduardo.pereira@exemplo.com",
-                "Monitor Voluntario", TipoVinculo.VOLUNTARIO, LocalDate.of(2025, 8, 20)));
+                "Monitor Voluntário", TipoVinculo.VOLUNTARIO, LocalDate.of(2025, 8, 20)));
 
         // --- Ocorrencias vinculadas a pessoas ---------------------------------
 
         ocorrenciaRepository.save(new Ocorrencia(
                 TipoOcorrencia.FERIAS, LocalDate.of(2026, 7, 6), LocalDate.of(2026, 7, 20),
-                SituacaoOcorrencia.CONFIRMADA, "15 dias do periodo 2024/2025", ana));
+                SituacaoOcorrencia.CONFIRMADA, "15 dias do período 2024/2025", ana));
 
         ocorrenciaRepository.save(new Ocorrencia(
                 TipoOcorrencia.FOLGA, LocalDate.of(2026, 9, 14), LocalDate.of(2026, 9, 14),
-                SituacaoOcorrencia.CONFIRMADA, "Compensacao de sabado letivo", ana));
+                SituacaoOcorrencia.CONFIRMADA, "Compensação de sábado letivo", ana));
 
         ocorrenciaRepository.save(new Ocorrencia(
                 TipoOcorrencia.LICENCA, LocalDate.of(2026, 3, 2), LocalDate.of(2026, 3, 16),
-                SituacaoOcorrencia.CONFIRMADA, "Licenca medica com atestado", carlos));
+                SituacaoOcorrencia.CONFIRMADA, "Licença médica com atestado", carlos));
 
         ocorrenciaRepository.save(new Ocorrencia(
                 TipoOcorrencia.AUSENCIA, LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 1),
-                SituacaoOcorrencia.PLANEJADA, "Consulta medica no periodo da tarde", daniela));
+                SituacaoOcorrencia.PLANEJADA, "Consulta médica no período da tarde", daniela));
 
         // --- Ocorrencia sem pessoa vinculada ----------------------------------
         // Feriado da instituicao: vale para o calendario, nao para uma pessoa.

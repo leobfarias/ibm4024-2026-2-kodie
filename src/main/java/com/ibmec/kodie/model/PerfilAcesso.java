@@ -9,7 +9,7 @@ package com.ibmec.kodie.model;
 public enum PerfilAcesso {
 
     ADMIN("Administrador"),
-    VISUALIZADOR("Visualizacao");
+    VISUALIZADOR("Visualização");
 
     private final String descricao;
 

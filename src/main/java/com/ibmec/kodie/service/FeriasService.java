@@ -61,7 +61,7 @@ public class FeriasService {
     @Transactional
     public SituacaoDeFerias consultarPorPessoaId(Long pessoaId) {
         Pessoa pessoa = pessoaRepository.findById(pessoaId)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Pessoa nao encontrada: " + pessoaId));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Pessoa não encontrada: " + pessoaId));
         return situacaoDe(pessoa);
     }
 

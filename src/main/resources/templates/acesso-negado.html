@@ -7,19 +7,17 @@
     <aside th:replace="~{fragmentos/comum :: lateral('')}"></aside>
 
     <main class="conteudo">
-        <div class="cabecalho">
-            <div>
+        <div class="tela-avulsa" style="min-height:70vh">
+            <div class="caixa-erro">
+                <div class="codigo"><svg class="icone" style="width:64px;height:64px" aria-hidden="true"><use th:href="@{/img/icones.svg#i-lock}"></use></svg></div>
                 <h1>Acesso negado</h1>
-                <p class="resumo">O seu perfil permite apenas consultar as informacoes.</p>
-            </div>
-        </div>
-        <div class="cartao">
-            <div class="cartao-corpo">
-                <p style="margin:0 0 16px">
-                    Cadastros, alteracoes e exclusoes sao feitos por um administrador.
-                    Se voce precisa registrar algo, solicite a quem administra o sistema.
-                </p>
-                <a class="botao" th:href="@{/pessoas/pagina}">Voltar para pessoas</a>
+                <p>O seu perfil permite apenas consultar as informações. Cadastros, alterações e
+                    exclusões são feitos por um administrador.</p>
+                <div class="acoes-linha">
+                    <a class="botao primario" th:href="@{/inicio}">
+                        <svg th:replace="~{fragmentos/comum :: i('house')}"></svg> Ir para o início
+                    </a>
+                </div>
             </div>
         </div>
     </main>

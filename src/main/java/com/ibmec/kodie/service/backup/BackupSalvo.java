@@ -17,7 +17,7 @@ public record BackupSalvo(String nome, String motivo, long tamanhoBytes, LocalDa
 
     public String getMotivoLegivel() {
         return switch (motivo) {
-            case "automatico" -> "Automatico";
+            case "automatico" -> "Automático";
             case "manual" -> "Manual";
             case "antes-da-restauracao" -> "Antes de restaurar";
             case "enviado" -> "Enviado";

@@ -15,20 +15,20 @@ import jakarta.validation.constraints.Size;
  */
 public class NovoUsuarioForm {
 
-    @NotBlank(message = "O login e obrigatorio")
+    @NotBlank(message = "O login é obrigatório")
     @Size(min = 3, max = 40, message = "O login deve ter entre 3 e 40 caracteres")
     @Pattern(regexp = "[a-z0-9._-]*",
-             message = "O login aceita apenas letras minusculas, numeros, ponto, hifen e sublinhado")
+             message = "O login aceita apenas letras minúsculas, números, ponto, hífen e sublinhado")
     private String login;
 
-    @NotBlank(message = "O nome e obrigatorio")
-    @Size(max = 120, message = "O nome deve ter no maximo 120 caracteres")
+    @NotBlank(message = "O nome é obrigatório")
+    @Size(max = 120, message = "O nome deve ter no máximo 120 caracteres")
     private String nome;
 
-    @NotNull(message = "O perfil de acesso e obrigatorio")
+    @NotNull(message = "O perfil de acesso é obrigatório")
     private PerfilAcesso perfil = PerfilAcesso.VISUALIZADOR;
 
-    @NotBlank(message = "A senha e obrigatoria")
+    @NotBlank(message = "A senha é obrigatória")
     @Size(min = 8, max = 72, message = "A senha deve ter entre 8 e 72 caracteres")
     private String senha;
 

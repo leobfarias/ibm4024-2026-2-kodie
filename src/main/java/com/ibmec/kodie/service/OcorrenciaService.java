@@ -36,7 +36,7 @@ public class OcorrenciaService {
 
     public Ocorrencia atualizar(Long id, Ocorrencia dados) {
         Ocorrencia existente = repository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Ocorrencia nao encontrada: " + id));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Ocorrência não encontrada: " + id));
 
         validarDatas(dados);
         resolverPessoa(dados);
@@ -54,7 +54,7 @@ public class OcorrenciaService {
 
     public void deletar(Long id) {
         if (!repository.existsById(id)) {
-            throw new RecursoNaoEncontradoException("Ocorrencia nao encontrada: " + id);
+            throw new RecursoNaoEncontradoException("Ocorrência não encontrada: " + id);
         }
         repository.deleteById(id);
     }
@@ -62,7 +62,7 @@ public class OcorrenciaService {
     private void validarDatas(Ocorrencia ocorrencia) {
         if (ocorrencia.getDataInicio() != null && ocorrencia.getDataFim() != null
                 && ocorrencia.getDataFim().isBefore(ocorrencia.getDataInicio())) {
-            throw new IllegalArgumentException("A data de fim nao pode ser anterior a data de inicio");
+            throw new IllegalArgumentException("A data de fim não pode ser anterior à data de início");
         }
     }
 
@@ -79,11 +79,11 @@ public class OcorrenciaService {
 
         Pessoa encontrada = pessoaRepository.findById(pessoa.getId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException(
-                        "Pessoa nao encontrada: " + pessoa.getId()));
+                        "Pessoa não encontrada: " + pessoa.getId()));
 
         if (encontrada.getSituacao() == SituacaoVinculo.DESLIGADO) {
             throw new IllegalArgumentException(
-                    "Nao e possivel registrar ocorrencia para uma pessoa desligada");
+                    "Não é possível registrar ocorrência para uma pessoa desligada");
         }
 
         ocorrencia.setPessoa(encontrada);
@@ -110,7 +110,7 @@ public class OcorrenciaService {
 
         if (conflita) {
             throw new IllegalArgumentException(
-                    "Esta pessoa ja possui uma ocorrencia registrada neste periodo");
+                    "Esta pessoa já possui uma ocorrência registrada neste período");
         }
     }
 }

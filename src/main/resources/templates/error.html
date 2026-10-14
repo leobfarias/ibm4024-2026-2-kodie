@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<!--
+    Página de erro do sistema. O Spring Boot a usa para qualquer erro em uma
+    tela, no lugar da página padrão (Whitelabel). A API continua respondendo
+    em JSON.
+-->
+<head th:replace="~{fragmentos/comum :: cabecalho('Algo deu errado')}"></head>
+<body>
+<div class="tela-avulsa" th:with="codigo=${status != null ? status : 500}">
+    <div class="caixa-erro">
+        <div class="codigo numerico" th:text="${codigo}">500</div>
+
+        <th:block th:switch="${codigo}">
+            <th:block th:case="404">
+                <h1>Página não encontrada</h1>
+                <p>O endereço não existe, ou o registro que você procurava foi removido.</p>
+            </th:block>
+            <th:block th:case="400">
+                <h1>Endereço com valor inválido</h1>
+                <p>Algum valor na URL não é reconhecido pelo sistema, como um mês ou um filtro
+                    digitado à mão. Volte e use os filtros da própria tela.</p>
+            </th:block>
+            <th:block th:case="403">
+                <h1>Acesso negado</h1>
+                <p>O seu perfil não permite esta operação.</p>
+            </th:block>
+            <th:block th:case="*">
+                <h1>Algo deu errado do nosso lado</h1>
+                <p>O erro foi registrado. Tente de novo em instantes; se continuar, avise a
+                    administração do sistema.</p>
+            </th:block>
+        </th:block>
+
+        <div class="acoes-linha">
+            <a class="botao" href="javascript:history.back()">
+                <svg th:replace="~{fragmentos/comum :: i('arrow-left')}"></svg> Voltar
+            </a>
+            <a class="botao primario" th:href="@{/inicio}">
+                <svg th:replace="~{fragmentos/comum :: i('house')}"></svg> Ir para o início
+            </a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

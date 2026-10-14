@@ -22,7 +22,7 @@ public class LoginController {
         boolean jaLogado = autenticacao != null
                 && autenticacao.isAuthenticated()
                 && !(autenticacao instanceof AnonymousAuthenticationToken);
-        return jaLogado ? "redirect:/pessoas/pagina" : "login";
+        return jaLogado ? "redirect:/inicio" : "login";
     }
 
     /**

@@ -45,7 +45,7 @@ public class ContaWebController {
             resultado.rejectValue("senhaAtual", "obrigatoria", "Informe a senha atual");
         }
         if (form.getNovaSenha() != null && !form.getNovaSenha().equals(form.getConfirmacaoSenha())) {
-            resultado.rejectValue("confirmacaoSenha", "naoConfere", "As senhas nao conferem");
+            resultado.rejectValue("confirmacaoSenha", "naoConfere", "As senhas não conferem");
         }
         if (resultado.hasErrors()) {
             return prepararTela(model);
@@ -54,7 +54,7 @@ public class ContaWebController {
         try {
             usuarioService.trocarPropriaSenha(principal.getName(), form.getSenhaAtual(), form.getNovaSenha());
         } catch (IllegalArgumentException e) {
-            String campo = e.getMessage().contains("atual nao confere") ? "senhaAtual" : "novaSenha";
+            String campo = e.getMessage().contains("atual não confere") ? "senhaAtual" : "novaSenha";
             resultado.rejectValue(campo, "regraDeNegocio", e.getMessage());
             return prepararTela(model);
         }
@@ -65,7 +65,7 @@ public class ContaWebController {
 
     private String prepararTela(Model model) {
         model.addAttribute("titulo", "Minha senha");
-        model.addAttribute("subtitulo", "Troque a senha que voce usa para entrar no sistema.");
+        model.addAttribute("subtitulo", "Troque a senha que você usa para entrar no sistema.");
         model.addAttribute("acao", "/conta/senha");
         model.addAttribute("voltar", "/pessoas/pagina");
         model.addAttribute("pedirSenhaAtual", true);

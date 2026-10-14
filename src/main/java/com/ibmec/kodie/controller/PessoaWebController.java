@@ -94,7 +94,7 @@ public class PessoaWebController {
     public String ficha(@PathVariable Long id, Model model, RedirectAttributes atributos) {
         Optional<Pessoa> pessoa = pessoaService.buscarPorId(id);
         if (pessoa.isEmpty()) {
-            atributos.addFlashAttribute("erro", "Pessoa nao encontrada: " + id);
+            atributos.addFlashAttribute("erro", "Pessoa não encontrada: " + id);
             return "redirect:/pessoas/pagina";
         }
 

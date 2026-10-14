@@ -20,12 +20,26 @@ public final class RespostasDeSegurancaApi {
     private RespostasDeSegurancaApi() {
     }
 
-    /** 401: a requisicao nao trouxe credenciais validas. */
+    /** 401 para clientes de API: com o desafio Basic, que informa como se autenticar. */
     public static AuthenticationEntryPoint naoAutenticado() {
+        return naoAutenticado(true);
+    }
+
+    /**
+     * 401: a requisicao nao trouxe credenciais validas.
+     *
+     * @param comDesafioBasic falso para pedidos feitos pelo navegador em segundo
+     *                        plano (icones, imagens): o cabecalho WWW-Authenticate
+     *                        faria o navegador abrir a janela nativa de login, por
+     *                        cima da tela de login do proprio sistema.
+     */
+    public static AuthenticationEntryPoint naoAutenticado(boolean comDesafioBasic) {
         return (requisicao, resposta, excecao) -> {
-            resposta.setHeader("WWW-Authenticate", "Basic realm=\"KODIE\"");
+            if (comDesafioBasic) {
+                resposta.setHeader("WWW-Authenticate", "Basic realm=\"KODIE\"");
+            }
             escrever(resposta, HttpServletResponse.SC_UNAUTHORIZED,
-                    "Autenticacao necessaria: informe usuario e senha");
+                    "Autenticação necessária: informe usuário e senha");
         };
     }
 

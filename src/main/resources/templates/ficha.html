@@ -7,197 +7,154 @@
     <aside th:replace="~{fragmentos/comum :: lateral('pessoas')}"></aside>
 
     <main class="conteudo">
+        <div class="conteudo-limite" style="max-width:960px">
 
-        <div th:replace="~{fragmentos/comum :: avisos}"></div>
+            <div th:replace="~{fragmentos/comum :: avisos}"></div>
 
-        <a class="voltar" th:href="@{/pessoas/pagina}">&larr; Pessoas</a>
+            <a class="voltar" th:href="@{/pessoas/pagina}">
+                <svg th:replace="~{fragmentos/comum :: i('arrow-left')}"></svg> Pessoas
+            </a>
 
-        <div class="cartao">
-            <div class="identidade">
-                <div class="inicial grande" th:text="${pessoa.iniciais}">AN</div>
-                <div class="corpo">
-                    <h1 th:text="${pessoa.nome}">Nome</h1>
-                    <div class="subtitulo" th:text="${pessoa.cargo}">Cargo</div>
+            <div class="cartao">
+                <div class="identidade">
+                    <span class="avatar grande" th:classappend="${pessoa.corAvatar}" th:text="${pessoa.iniciais}">AB</span>
+                    <div class="corpo">
+                        <h1 th:text="${pessoa.nome}">Nome</h1>
+                        <div class="subtitulo" th:text="${pessoa.cargo} + ' · ' + ${pessoa.email}">Cargo</div>
+                    </div>
+                    <div class="etiquetas">
+                        <span class="etiqueta sem-ponto" th:classappend="${pessoa.possuiRegraDeFerias()} ? 'azul'"
+                              th:text="${pessoa.tipoVinculo.descricao}">Vínculo</span>
+                        <span class="etiqueta"
+                              th:classappend="${pessoa.situacao.name() == 'ATIVO'} ? 'verde'
+                                            : (${pessoa.situacao.name() == 'AFASTADO'} ? 'ambar'
+                                            : (${pessoa.situacao.name() == 'DESLIGADO'} ? 'vermelha' : ''))"
+                              th:text="${pessoa.situacao.descricao}">Situação</span>
+                    </div>
                 </div>
-                <span class="etiqueta"
-                      th:classappend="${pessoa.possuiRegraDeFerias()} ? 'azul'"
-                      th:text="${pessoa.tipoVinculo.descricao}">Vinculo</span>
-            </div>
-        </div>
-
-        <div class="cartao">
-            <div class="cartao-titulo">Dados cadastrais</div>
-            <div class="cartao-corpo">
-                <dl class="dados">
-                    <div>
-                        <dt>Nome completo</dt>
-                        <dd th:text="${pessoa.nome}">Nome</dd>
-                    </div>
-                    <div>
-                        <dt>CPF</dt>
-                        <dd class="numerico" th:text="${pessoa.cpf}">00000000000</dd>
-                    </div>
-                    <div>
-                        <dt>E-mail</dt>
-                        <dd th:text="${pessoa.email}">email</dd>
-                    </div>
-                </dl>
-            </div>
-        </div>
-
-        <div class="cartao">
-            <div class="cartao-titulo">Vinculo</div>
-            <div class="cartao-corpo">
-                <dl class="dados">
-                    <div>
-                        <dt>Tipo</dt>
-                        <dd th:text="${pessoa.tipoVinculo.descricao}">Tipo</dd>
-                    </div>
-                    <div>
-                        <dt>Cargo</dt>
-                        <dd th:text="${pessoa.cargo}">Cargo</dd>
-                    </div>
-                    <div>
-                        <dt>Situacao</dt>
-                        <dd>
-                            <span class="etiqueta"
-                                  th:classappend="${pessoa.situacao.name() == 'ATIVO'} ? 'verde'
-                                                : (${pessoa.situacao.name() == 'AFASTADO'} ? 'ambar'
-                                                : (${pessoa.situacao.name() == 'DESLIGADO'} ? 'vermelha' : ''))"
-                                  th:text="${pessoa.situacao.descricao}">Situacao</span>
-                        </dd>
-                    </div>
-                    <div>
-                        <dt>Data de entrada</dt>
-                        <dd class="numerico" th:text="${#temporals.format(pessoa.dataEntrada, 'dd/MM/yyyy')}">00/00/0000</dd>
-                    </div>
-                    <div>
-                        <dt>Data de saida</dt>
-                        <dd th:if="${pessoa.dataSaida != null}" class="numerico"
-                            th:text="${#temporals.format(pessoa.dataSaida, 'dd/MM/yyyy')}">00/00/0000</dd>
-                        <dd th:if="${pessoa.dataSaida == null}" class="ausente">&mdash;</dd>
-                    </div>
-                    <div>
-                        <dt>Regra de ferias</dt>
-                        <dd th:text="${pessoa.possuiRegraDeFerias()} ? 'Aplicavel (CLT)' : 'Nao aplicavel'">-</dd>
-                    </div>
-                </dl>
-            </div>
-        </div>
-
-        <div class="cartao">
-            <div class="cartao-titulo">
-                <span>Historico de ferias</span>
-                <span class="complemento" th:if="${pessoa.possuiRegraDeFerias()}"
-                      th:text="'Saldo total: ' + ${ferias.saldoTotal} + ' dias'">Saldo total</span>
             </div>
 
-            <div class="cartao-corpo" th:unless="${pessoa.possuiRegraDeFerias()}">
-                <p class="nota" style="margin:0">
-                    Esta pessoa nao possui vinculo CLT: nao acumula periodo aquisitivo, nao tem
-                    prazo concessivo e nao recebe alerta de vencimento. Suas pausas sao
-                    registradas como ocorrencias comuns.
-                </p>
+            <div class="cartao">
+                <div class="cartao-titulo">
+                    <span class="titulo-com-icone"><svg th:replace="~{fragmentos/comum :: i('users')}"></svg> Dados cadastrais e vínculo</span>
+                </div>
+                <div class="cartao-corpo">
+                    <dl class="dados">
+                        <div><dt>Nome completo</dt><dd th:text="${pessoa.nome}">Nome</dd></div>
+                        <div><dt>CPF</dt><dd class="numerico" th:text="${pessoa.cpf}">00000000000</dd></div>
+                        <div><dt>E-mail</dt><dd th:text="${pessoa.email}">email</dd></div>
+                        <div><dt>Cargo</dt><dd th:text="${pessoa.cargo}">Cargo</dd></div>
+                        <div><dt>Tipo de vínculo</dt><dd th:text="${pessoa.tipoVinculo.descricao}">Tipo</dd></div>
+                        <div><dt>Regra de férias</dt><dd th:text="${pessoa.possuiRegraDeFerias()} ? 'Aplicável (CLT)' : 'Não aplicável'">-</dd></div>
+                        <div><dt>Data de entrada</dt><dd class="numerico" th:text="${#temporals.format(pessoa.dataEntrada, 'dd/MM/yyyy')}">00/00/0000</dd></div>
+                        <div>
+                            <dt>Data de saída</dt>
+                            <dd th:if="${pessoa.dataSaida != null}" class="numerico" th:text="${#temporals.format(pessoa.dataSaida, 'dd/MM/yyyy')}">00/00/0000</dd>
+                            <dd th:if="${pessoa.dataSaida == null}" class="ausente">—</dd>
+                        </div>
+                    </dl>
+                </div>
             </div>
 
-            <div th:if="${pessoa.possuiRegraDeFerias()}">
-                <div class="cartao-corpo" th:if="${#lists.isEmpty(ferias.periodos)}">
+            <div class="cartao">
+                <div class="cartao-titulo">
+                    <span class="titulo-com-icone"><svg th:replace="~{fragmentos/comum :: i('sun')}"></svg> Histórico de férias</span>
+                    <span class="complemento" th:if="${pessoa.possuiRegraDeFerias()}"
+                          th:text="'Saldo total: ' + ${ferias.saldoTotal} + ' dias'">Saldo total</span>
+                </div>
+
+                <div class="cartao-corpo" th:unless="${pessoa.possuiRegraDeFerias()}">
                     <p class="nota" style="margin:0">
-                        Nenhum periodo aquisitivo completo ate o momento. O primeiro nasce ao
-                        completar doze meses de vinculo.
+                        Esta pessoa não possui vínculo CLT: não acumula período aquisitivo, não tem
+                        prazo concessivo e não recebe alerta de vencimento. Suas pausas são
+                        registradas como ocorrências comuns.
                     </p>
                 </div>
 
-                <div class="periodos" th:unless="${#lists.isEmpty(ferias.periodos)}">
-                    <div class="periodo" th:each="p : ${ferias.periodos}">
-                        <div class="intervalo">
-                            <div class="datas numerico"
-                                 th:text="${#temporals.format(p.periodo.dataInicio, 'dd/MM/yyyy')} + ' – ' + ${#temporals.format(p.periodo.dataFim, 'dd/MM/yyyy')}">
-                                periodo
-                            </div>
-                            <div class="legenda">Periodo aquisitivo</div>
-                        </div>
-
-                        <div class="numeros">
-                            <div>
-                                <div class="rotulo">Direito</div>
-                                <div class="valor numerico" th:text="${p.periodo.diasDeDireito} + ' dias'">30 dias</div>
-                            </div>
-                            <div>
-                                <div class="rotulo">Gozados</div>
-                                <div class="valor numerico" th:text="${p.diasGozados} + ' dias'">0 dias</div>
-                            </div>
-                            <div>
-                                <div class="rotulo">Saldo</div>
-                                <div class="valor numerico"
-                                     th:classappend="${p.saldo > 0} ? 'destaque' : 'apagado'"
-                                     th:text="${p.saldo} + ' dias'">0 dias</div>
-                            </div>
-                            <div>
-                                <div class="rotulo">Prazo de ferias</div>
-                                <div class="valor numerico"
-                                     th:text="${#temporals.format(p.periodo.dataLimiteGozo, 'dd/MM/yyyy')}">00/00/0000</div>
-                            </div>
-                        </div>
-
-                        <span th:if="${p.vencido}" class="etiqueta vermelha"
-                              th:text="'Vencido ha ' + ${-p.diasAteOLimite} + ' dias'">Vencido</span>
-                        <span th:if="${p.proximoDoVencimento}" class="etiqueta ambar"
-                              th:text="'Faltam ' + ${p.diasAteOLimite} + ' dias'">A vencer</span>
-                        <span th:if="${!p.vencido and !p.proximoDoVencimento and p.saldo > 0}"
-                              class="etiqueta verde">Regular</span>
-                        <span th:if="${p.saldo == 0}" class="etiqueta verde">Quitado</span>
+                <th:block th:if="${pessoa.possuiRegraDeFerias()}">
+                    <div class="vazio" th:if="${#lists.isEmpty(ferias.periodos)}">
+                        <svg th:replace="~{fragmentos/comum :: i('clock')}"></svg>
+                        Nenhum período aquisitivo completo ainda. O primeiro nasce ao completar doze meses de vínculo.
                     </div>
+
+                    <div class="periodos" th:unless="${#lists.isEmpty(ferias.periodos)}">
+                        <div class="periodo" th:each="p : ${ferias.periodos}">
+                            <div class="intervalo">
+                                <div class="datas numerico"
+                                     th:text="${#temporals.format(p.periodo.dataInicio, 'dd/MM/yyyy')} + ' – ' + ${#temporals.format(p.periodo.dataFim, 'dd/MM/yyyy')}">período</div>
+                                <div class="legenda" th:text="'Período aquisitivo ' + ${p.periodo.numero}">Período aquisitivo</div>
+                            </div>
+                            <div class="numeros">
+                                <div><div class="rotulo">Direito</div><div class="valor numerico" th:text="${p.periodo.diasDeDireito} + ' dias'">30 dias</div></div>
+                                <div><div class="rotulo">Gozados</div><div class="valor numerico" th:text="${p.diasGozados} + ' dias'">0 dias</div></div>
+                                <div>
+                                    <div class="rotulo">Saldo</div>
+                                    <div class="valor numerico" th:classappend="${p.saldo > 0} ? 'destaque' : 'apagado'" th:text="${p.saldo} + ' dias'">0 dias</div>
+                                </div>
+                                <div><div class="rotulo">Prazo para gozo</div><div class="valor numerico" th:text="${#temporals.format(p.periodo.dataLimiteGozo, 'dd/MM/yyyy')}">00/00/0000</div></div>
+                            </div>
+                            <span th:if="${p.vencido}" class="etiqueta vermelha" th:text="'Vencido há ' + ${-p.diasAteOLimite} + ' dias'">Vencido</span>
+                            <span th:if="${p.proximoDoVencimento}" class="etiqueta ambar" th:text="'Faltam ' + ${p.diasAteOLimite} + ' dias'">A vencer</span>
+                            <span th:if="${!p.vencido and !p.proximoDoVencimento and p.saldo > 0}" class="etiqueta verde">Regular</span>
+                            <span th:if="${p.saldo == 0}" class="etiqueta verde">Quitado</span>
+                        </div>
+                    </div>
+                </th:block>
+            </div>
+
+            <div class="cartao">
+                <div class="cartao-titulo">
+                    <span class="titulo-com-icone"><svg th:replace="~{fragmentos/comum :: i('calendar-days')}"></svg> Ocorrências</span>
+                    <a th:if="${ehAdmin}" class="botao pequeno" th:href="@{/ocorrencias/pagina/nova(pessoaId=${pessoa.id})}">
+                        <svg th:replace="~{fragmentos/comum :: i('plus')}"></svg> Registrar ocorrência
+                    </a>
+                </div>
+
+                <div class="vazio" th:if="${#lists.isEmpty(ocorrencias)}">
+                    <svg th:replace="~{fragmentos/comum :: i('calendar-days')}"></svg>
+                    Nenhuma ocorrência registrada para esta pessoa.
+                </div>
+
+                <div style="overflow-x:auto" th:unless="${#lists.isEmpty(ocorrencias)}">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Tipo</th><th>Início</th><th>Fim</th><th class="direita">Dias</th>
+                            <th>Situação</th><th>Observação</th><th th:if="${ehAdmin}"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="o : ${ocorrencias}">
+                            <td class="principal">
+                                <span class="marcador-tipo" th:classappend="'tipo-' + ${#strings.toLowerCase(o.tipo.name())}"></span>
+                                <span th:text="${o.tipo.descricao}">Tipo</span>
+                            </td>
+                            <td class="numerico" th:text="${#temporals.format(o.dataInicio, 'dd/MM/yyyy')}">00/00/0000</td>
+                            <td class="numerico" th:text="${#temporals.format(o.dataFim, 'dd/MM/yyyy')}">00/00/0000</td>
+                            <td class="numerico direita" th:text="${o.totalDeDias}">0</td>
+                            <td>
+                                <span class="etiqueta"
+                                      th:classappend="${o.situacao.name() == 'CONFIRMADA'} ? 'verde' : (${o.situacao.name() == 'CANCELADA'} ? 'vermelha' : '')"
+                                      th:text="${o.situacao.descricao}">Situação</span>
+                            </td>
+                            <td th:text="${o.observacao != null and !o.observacao.isBlank()} ? ${o.observacao} : '—'">—</td>
+                            <td th:if="${ehAdmin}" class="direita">
+                                <form th:action="@{/ocorrencias/pagina/{id}/excluir(id=${o.id})}" method="post"
+                                      onsubmit="return confirm('Excluir esta ocorrência?')">
+                                    <input type="hidden" name="pessoaId" th:value="${pessoa.id}">
+                                    <button type="submit" class="botao texto" title="Excluir">
+                                        <svg th:replace="~{fragmentos/comum :: i('trash-2')}"></svg>
+                                        <span class="visualmente-oculto">Excluir</span>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
+
         </div>
-
-        <div class="cartao">
-            <div class="cartao-titulo">
-                <span>Ocorrencias</span>
-                <a th:if="${ehAdmin}" class="botao" th:href="@{/ocorrencias/pagina/nova(pessoaId=${pessoa.id})}">Registrar ocorrencia</a>
-            </div>
-
-            <table th:unless="${#lists.isEmpty(ocorrencias)}">
-                <thead>
-                <tr>
-                    <th>Tipo</th>
-                    <th>Inicio</th>
-                    <th>Fim</th>
-                    <th>Dias</th>
-                    <th>Situacao</th>
-                    <th>Observacao</th>
-                    <th th:if="${ehAdmin}"></th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="o : ${ocorrencias}">
-                    <td class="principal" th:text="${o.tipo.descricao}">Tipo</td>
-                    <td class="numerico" th:text="${#temporals.format(o.dataInicio, 'dd/MM/yyyy')}">00/00/0000</td>
-                    <td class="numerico" th:text="${#temporals.format(o.dataFim, 'dd/MM/yyyy')}">00/00/0000</td>
-                    <td class="numerico" th:text="${o.totalDeDias}">0</td>
-                    <td>
-                        <span class="etiqueta"
-                              th:classappend="${o.situacao.name() == 'CONFIRMADA'} ? 'verde'
-                                            : (${o.situacao.name() == 'CANCELADA'} ? 'vermelha' : '')"
-                              th:text="${o.situacao.descricao}">Situacao</span>
-                    </td>
-                    <td th:text="${o.observacao != null and !o.observacao.isBlank()} ? ${o.observacao} : '—'">—</td>
-                    <td th:if="${ehAdmin}">
-                        <form th:action="@{/ocorrencias/pagina/{id}/excluir(id=${o.id})}" method="post">
-                            <input type="hidden" name="pessoaId" th:value="${pessoa.id}">
-                            <button type="submit" class="botao texto">excluir</button>
-                        </form>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-
-            <div class="cartao-corpo" th:if="${#lists.isEmpty(ocorrencias)}">
-                <p class="nota" style="margin:0">Nenhuma ocorrencia registrada para esta pessoa.</p>
-            </div>
-        </div>
-
     </main>
 </div>
 </body>

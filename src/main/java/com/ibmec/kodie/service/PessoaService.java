@@ -72,7 +72,7 @@ public class PessoaService {
      */
     public List<Ocorrencia> listarOcorrencias(Long pessoaId) {
         if (!repository.existsById(pessoaId)) {
-            throw new RecursoNaoEncontradoException("Pessoa nao encontrada: " + pessoaId);
+            throw new RecursoNaoEncontradoException("Pessoa não encontrada: " + pessoaId);
         }
         return ocorrenciaRepository.findByPessoaIdOrderByDataInicioDesc(pessoaId);
     }
@@ -84,7 +84,7 @@ public class PessoaService {
     public Pessoa criar(Pessoa pessoa) {
         if (repository.existsByCpf(pessoa.getCpf())) {
             throw new IllegalArgumentException(
-                    "Ja existe uma pessoa cadastrada com o CPF " + pessoa.getCpf());
+                    "Já existe uma pessoa cadastrada com o CPF " + pessoa.getCpf());
         }
         aplicarRegrasDeDesligamento(pessoa);
         return repository.save(pessoa);
@@ -92,11 +92,11 @@ public class PessoaService {
 
     public Pessoa atualizar(Long id, Pessoa dados) {
         Pessoa existente = repository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Pessoa nao encontrada: " + id));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Pessoa não encontrada: " + id));
 
         if (repository.existsByCpfAndIdNot(dados.getCpf(), id)) {
             throw new IllegalArgumentException(
-                    "Ja existe outra pessoa cadastrada com o CPF " + dados.getCpf());
+                    "Já existe outra pessoa cadastrada com o CPF " + dados.getCpf());
         }
 
         aplicarRegrasDeDesligamento(dados);
@@ -122,7 +122,7 @@ public class PessoaService {
     @Transactional
     public void deletar(Long id) {
         if (!repository.existsById(id)) {
-            throw new RecursoNaoEncontradoException("Pessoa nao encontrada: " + id);
+            throw new RecursoNaoEncontradoException("Pessoa não encontrada: " + id);
         }
         ocorrenciaRepository.deleteAll(ocorrenciaRepository.findByPessoaIdOrderByDataInicioDesc(id));
         periodoRepository.deleteByPessoaId(id);
@@ -137,14 +137,14 @@ public class PessoaService {
         boolean desligada = pessoa.getSituacao() == SituacaoVinculo.DESLIGADO;
 
         if (desligada && pessoa.getDataSaida() == null) {
-            throw new IllegalArgumentException("Informe a data de saida para uma pessoa desligada");
+            throw new IllegalArgumentException("Informe a data de saída para uma pessoa desligada");
         }
         if (!desligada && pessoa.getDataSaida() != null) {
-            throw new IllegalArgumentException("So e permitido informar data de saida quando a situacao for Desligado");
+            throw new IllegalArgumentException("Só é permitido informar data de saída quando a situação for Desligado");
         }
         if (pessoa.getDataSaida() != null && pessoa.getDataEntrada() != null
                 && pessoa.getDataSaida().isBefore(pessoa.getDataEntrada())) {
-            throw new IllegalArgumentException("A data de saida nao pode ser anterior a data de entrada");
+            throw new IllegalArgumentException("A data de saída não pode ser anterior à data de entrada");
         }
     }
 }

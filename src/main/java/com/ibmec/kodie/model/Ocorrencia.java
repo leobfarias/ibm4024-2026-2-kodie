@@ -19,27 +19,27 @@ public class Ocorrencia {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "O tipo da ocorrencia e obrigatorio")
+    @NotNull(message = "O tipo da ocorrência é obrigatório")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 25)
     private TipoOcorrencia tipo;
 
-    @NotNull(message = "A data de inicio e obrigatoria")
+    @NotNull(message = "A data de início é obrigatória")
     @Column(nullable = false)
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate dataInicio;
 
-    @NotNull(message = "A data de fim e obrigatoria")
+    @NotNull(message = "A data de fim é obrigatória")
     @Column(nullable = false)
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate dataFim;
 
-    @NotNull(message = "A situacao e obrigatoria")
+    @NotNull(message = "A situação é obrigatória")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private SituacaoOcorrencia situacao = SituacaoOcorrencia.PLANEJADA;
 
-    @Size(max = 255, message = "A observacao deve ter no maximo 255 caracteres")
+    @Size(max = 255, message = "A observação deve ter no máximo 255 caracteres")
     @Column(length = 255)
     private String observacao;
 

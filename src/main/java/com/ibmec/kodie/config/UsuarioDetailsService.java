@@ -25,6 +25,6 @@ public class UsuarioDetailsService implements UserDetailsService {
         String normalizado = login == null ? "" : login.trim().toLowerCase();
         return repository.findByLogin(normalizado)
                 .map(UsuarioAutenticado::new)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuario nao encontrado"));
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
     }
 }

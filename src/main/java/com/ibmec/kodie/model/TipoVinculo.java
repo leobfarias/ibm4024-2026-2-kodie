@@ -9,7 +9,7 @@ public enum TipoVinculo {
     CLT("CLT"),
     MEI("MEI"),
     PJ("PJ"),
-    VOLUNTARIO("Voluntario");
+    VOLUNTARIO("Voluntário");
 
     private final String descricao;
 

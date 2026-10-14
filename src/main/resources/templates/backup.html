@@ -7,108 +7,127 @@
     <aside th:replace="~{fragmentos/comum :: lateral('backup')}"></aside>
 
     <main class="conteudo">
+        <div class="conteudo-limite">
 
-        <div th:replace="~{fragmentos/comum :: avisos}"></div>
+            <div th:replace="~{fragmentos/comum :: avisos}"></div>
 
-        <div class="cabecalho">
-            <div>
-                <h1>Backup</h1>
-                <p class="resumo">Copias de seguranca de todos os dados, para recuperar o sistema depois de uma falha.</p>
-            </div>
-            <div class="acoes">
-                <form th:action="@{/backup/pagina/gerar}" method="post">
-                    <button type="submit" class="botao primario">Gerar backup agora</button>
-                </form>
-            </div>
-        </div>
-
-        <div class="quadro">
-            <table>
-                <thead>
-                <tr>
-                    <th>Arquivo</th>
-                    <th>Tipo</th>
-                    <th>Gerado em</th>
-                    <th>Tamanho</th>
-                    <th>Acoes</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:if="${#lists.isEmpty(backups)}">
-                    <td colspan="5" class="vazio">
-                        Nenhum backup no servidor ainda. O primeiro automatico sera gerado as 3h,
-                        ou use "Gerar backup agora".
-                    </td>
-                </tr>
-                <tr th:each="b : ${backups}">
-                    <td class="principal numerico" th:text="${b.nome}">arquivo.json</td>
-                    <td>
-                        <span class="etiqueta"
-                              th:classappend="${b.motivo == 'automatico'} ? 'verde'
-                                            : (${b.motivo == 'antes-da-restauracao'} ? 'ambar'
-                                            : (${b.motivo == 'enviado'} ? 'azul' : ''))"
-                              th:text="${b.motivoLegivel}">Tipo</span>
-                    </td>
-                    <td class="numerico" th:text="${#temporals.format(b.criadoEm, 'dd/MM/yyyy HH:mm')}">00/00/0000</td>
-                    <td class="numerico" th:text="${b.tamanhoLegivel}">0 KB</td>
-                    <td>
-                        <div class="acoes-linha">
-                            <a class="botao pequeno" th:href="@{/backup/pagina/baixar(arquivo=${b.nome})}">Baixar</a>
-                            <a class="botao pequeno" th:href="@{/backup/pagina/restaurar(arquivo=${b.nome})}">Restaurar</a>
-                            <form th:action="@{/backup/pagina/excluir}" method="post"
-                                  onsubmit="return confirm('Excluir este backup do servidor?')">
-                                <input type="hidden" name="arquivo" th:value="${b.nome}">
-                                <button type="submit" class="botao texto">excluir</button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <p class="nota">
-            Um backup automatico e gerado todos os dias as 3h, e os 14 mais recentes sao mantidos.
-            Antes de toda restauracao, o estado atual vira um backup "Antes de restaurar", para que
-            restaurar o arquivo errado nunca seja irreversivel. <strong>Baixe periodicamente uma copia
-            para fora do servidor:</strong> um backup guardado no mesmo disco do banco nao protege
-            contra a perda do disco.
-        </p>
-
-        <section class="cartao" style="margin-top:22px">
-            <div class="cartao-titulo">Restaurar a partir de um arquivo</div>
-            <div class="cartao-corpo">
-                <form th:action="@{/backup/pagina/enviar}" method="post" enctype="multipart/form-data" class="formulario">
-                    <div>
-                        <label for="arquivo">Arquivo de backup (.json)</label>
-                        <input type="file" id="arquivo" name="arquivo" accept=".json,application/json">
-                    </div>
-                    <p class="nota" style="margin:0">
-                        O arquivo e analisado antes de qualquer alteracao. Na tela seguinte voce ve o
-                        conteudo dele e confirma - ou desiste.
-                    </p>
-                    <div class="formulario-acoes">
-                        <button type="submit" class="botao">Enviar e analisar</button>
-                    </div>
-                </form>
-            </div>
-        </section>
-
-        <section class="cartao">
-            <div class="cartao-titulo">Exportar para planilha</div>
-            <div class="cartao-corpo">
-                <p style="margin:0 0 14px">
-                    Arquivos CSV para abrir no Excel ou no Google Planilhas. Servem para relatorios,
-                    nao para restauracao.
-                </p>
-                <div class="acoes-linha">
-                    <a class="botao" th:href="@{/exportacao/pessoas.csv}">Pessoas</a>
-                    <a class="botao" th:href="@{/exportacao/ocorrencias.csv}">Ocorrencias</a>
-                    <a class="botao" th:href="@{/exportacao/ferias.csv}">Situacao de ferias</a>
+            <div class="cabecalho">
+                <div>
+                    <h1>Backup</h1>
+                    <p class="resumo">Cópias de segurança de todos os dados, para recuperar o sistema depois de uma falha.</p>
+                </div>
+                <div class="acoes">
+                    <form th:action="@{/backup/pagina/gerar}" method="post">
+                        <button type="submit" class="botao primario">
+                            <svg th:replace="~{fragmentos/comum :: i('database-backup')}"></svg> Gerar backup agora
+                        </button>
+                    </form>
                 </div>
             </div>
-        </section>
 
+            <div class="informativo alerta">
+                <svg th:replace="~{fragmentos/comum :: i('triangle-alert')}"></svg>
+                <div>
+                    <strong>Guarde cópias fora do servidor.</strong> Um backup automático é gerado todo dia às 3h
+                    e os 14 mais recentes são mantidos, mas eles ficam no mesmo disco do banco. Baixe uma cópia
+                    regularmente.
+                </div>
+            </div>
+
+            <div class="quadro">
+                <table>
+                    <thead>
+                    <tr><th>Arquivo</th><th>Tipo</th><th>Gerado em</th><th class="direita">Tamanho</th><th class="direita">Ações</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${#lists.isEmpty(backups)}">
+                        <td colspan="5">
+                            <div class="vazio">
+                                <svg th:replace="~{fragmentos/comum :: i('database-backup')}"></svg>
+                                Nenhum backup no servidor ainda. O primeiro automático sai às 3h, ou use "Gerar backup agora".
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:each="b : ${backups}">
+                        <td class="principal numerico" th:text="${b.nome}">arquivo.json</td>
+                        <td>
+                            <span class="etiqueta"
+                                  th:classappend="${b.motivo == 'automatico'} ? 'verde'
+                                                : (${b.motivo == 'antes-da-restauracao'} ? 'ambar'
+                                                : (${b.motivo == 'enviado'} ? 'azul' : ''))"
+                                  th:text="${b.motivoLegivel}">Tipo</span>
+                        </td>
+                        <td class="numerico" th:text="${#temporals.format(b.criadoEm, 'dd/MM/yyyy HH:mm')}">00/00/0000</td>
+                        <td class="numerico direita" th:text="${b.tamanhoLegivel}">0 KB</td>
+                        <td>
+                            <div class="acoes-linha" style="justify-content:flex-end">
+                                <a class="botao pequeno" th:href="@{/backup/pagina/baixar(arquivo=${b.nome})}">
+                                    <svg th:replace="~{fragmentos/comum :: i('download')}"></svg> Baixar
+                                </a>
+                                <a class="botao pequeno" th:href="@{/backup/pagina/restaurar(arquivo=${b.nome})}">Restaurar</a>
+                                <form th:action="@{/backup/pagina/excluir}" method="post"
+                                      onsubmit="return confirm('Excluir este backup do servidor?')">
+                                    <input type="hidden" name="arquivo" th:value="${b.nome}">
+                                    <button type="submit" class="botao texto" title="Excluir">
+                                        <svg th:replace="~{fragmentos/comum :: i('trash-2')}"></svg>
+                                        <span class="visualmente-oculto">Excluir</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="nota">
+                Antes de toda restauração, o estado atual vira um backup "Antes de restaurar", para que
+                restaurar o arquivo errado nunca seja irreversível.
+            </p>
+
+            <div class="grade-paineis" style="margin-top:24px">
+                <section class="cartao">
+                    <div class="cartao-titulo">
+                        <span class="titulo-com-icone"><svg th:replace="~{fragmentos/comum :: i('upload')}"></svg> Restaurar a partir de um arquivo</span>
+                    </div>
+                    <div class="cartao-corpo">
+                        <form th:action="@{/backup/pagina/enviar}" method="post" enctype="multipart/form-data" class="formulario">
+                            <div>
+                                <label for="arquivo">Arquivo de backup (.json)</label>
+                                <input type="file" id="arquivo" name="arquivo" accept=".json,application/json">
+                            </div>
+                            <p class="nota" style="margin:0">
+                                O arquivo é analisado antes de qualquer alteração. Na tela seguinte você vê o
+                                conteúdo dele e confirma, ou desiste.
+                            </p>
+                            <div class="formulario-acoes">
+                                <button type="submit" class="botao">
+                                    <svg th:replace="~{fragmentos/comum :: i('upload')}"></svg> Enviar e analisar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <section class="cartao">
+                    <div class="cartao-titulo">
+                        <span class="titulo-com-icone"><svg th:replace="~{fragmentos/comum :: i('file-spreadsheet')}"></svg> Exportar para planilha</span>
+                    </div>
+                    <div class="cartao-corpo">
+                        <p style="margin:0 0 16px;color:var(--texto-medio)">
+                            Arquivos CSV para abrir no Excel ou no Google Planilhas. Servem para relatórios,
+                            não para restauração.
+                        </p>
+                        <div class="acoes-linha">
+                            <a class="botao" th:href="@{/exportacao/pessoas.csv}"><svg th:replace="~{fragmentos/comum :: i('download')}"></svg> Pessoas</a>
+                            <a class="botao" th:href="@{/exportacao/ocorrencias.csv}"><svg th:replace="~{fragmentos/comum :: i('download')}"></svg> Ocorrências</a>
+                            <a class="botao" th:href="@{/exportacao/ferias.csv}"><svg th:replace="~{fragmentos/comum :: i('download')}"></svg> Férias</a>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+        </div>
     </main>
 </div>
 </body>

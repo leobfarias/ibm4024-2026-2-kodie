@@ -7,9 +7,9 @@ package com.ibmec.kodie.model;
 public enum SituacaoFerias {
 
     REGULAR("Regular"),
-    PROXIMO_DO_VENCIMENTO("Proximo do vencimento"),
+    PROXIMO_DO_VENCIMENTO("Próximo do vencimento"),
     VENCIDO("Vencido"),
-    SEM_REGRA("Sem regra CLT aplicavel");
+    SEM_REGRA("Sem regra CLT aplicável");
 
     private final String descricao;
 

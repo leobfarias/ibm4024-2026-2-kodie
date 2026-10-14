@@ -1,116 +1,129 @@
 <!DOCTYPE html>
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragmentos/comum :: cabecalho('Ferias')}"></head>
+<head th:replace="~{fragmentos/comum :: cabecalho('Férias')}"></head>
 <body>
 <div class="aplicacao">
 
     <aside th:replace="~{fragmentos/comum :: lateral('ferias')}"></aside>
 
     <main class="conteudo">
+        <div class="conteudo-limite">
 
-        <div th:replace="~{fragmentos/comum :: avisos}"></div>
+            <div th:replace="~{fragmentos/comum :: avisos}"></div>
 
-        <div class="cabecalho">
-            <div>
-                <h1>Ferias</h1>
-                <p class="resumo" th:text="'Posicao em ' + ${#temporals.format(hoje, 'dd/MM/yyyy')}">Posicao em</p>
+            <div class="cabecalho">
+                <div>
+                    <h1>Férias</h1>
+                    <p class="resumo" th:text="'Posição em ' + ${#temporals.format(hoje, 'dd/MM/yyyy')}">Posição</p>
+                </div>
+                <div class="acoes">
+                    <a class="botao" th:href="@{/exportacao/ferias.csv}">
+                        <svg th:replace="~{fragmentos/comum :: i('download')}"></svg> Exportar CSV
+                    </a>
+                    <a th:if="${ehAdmin}" class="botao primario" th:href="@{/ocorrencias/pagina/nova}">
+                        <svg th:replace="~{fragmentos/comum :: i('calendar-plus')}"></svg> Registrar ocorrência
+                    </a>
+                </div>
             </div>
-            <div class="acoes">
-                <a class="botao" th:href="@{/exportacao/ferias.csv}">Exportar CSV</a>
-                <a th:if="${ehAdmin}" class="botao" th:href="@{/ocorrencias/pagina/nova}">Registrar ocorrencia</a>
+
+            <div class="indicadores">
+                <a class="indicador" th:href="@{/ferias/painel(situacao='REGULAR')}">
+                    <span class="selo verde"><svg th:replace="~{fragmentos/comum :: i('circle-check')}"></svg></span>
+                    <div class="rotulo">Regular</div>
+                    <div class="valor" th:text="${totalRegular}">0</div>
+                    <div class="detalhe">pessoas CLT em dia</div>
+                </a>
+                <a class="indicador" th:href="@{/ferias/painel(situacao='PROXIMO_DO_VENCIMENTO')}">
+                    <span class="selo ambar"><svg th:replace="~{fragmentos/comum :: i('clock')}"></svg></span>
+                    <div class="rotulo">A vencer</div>
+                    <div class="valor ambar" th:text="${totalProximo}">0</div>
+                    <div class="detalhe" th:text="'vencem em até ' + ${diasDeAlerta} + ' dias'">vencem em breve</div>
+                </a>
+                <a class="indicador" th:href="@{/ferias/painel(situacao='VENCIDO')}">
+                    <span class="selo vermelho"><svg th:replace="~{fragmentos/comum :: i('triangle-alert')}"></svg></span>
+                    <div class="rotulo">Vencido</div>
+                    <div class="valor vermelho" th:text="${totalVencido}">0</div>
+                    <div class="detalhe">prazo de gozo expirado</div>
+                </a>
+                <a class="indicador" th:href="@{/ferias/painel(situacao='SEM_REGRA')}">
+                    <span class="selo neutro"><svg th:replace="~{fragmentos/comum :: i('users')}"></svg></span>
+                    <div class="rotulo">Sem regra CLT</div>
+                    <div class="valor neutro" th:text="${totalSemRegra}">0</div>
+                    <div class="detalhe">MEI, PJ e voluntários</div>
+                </a>
             </div>
+
+            <form class="filtros" method="get" th:action="@{/ferias/painel}">
+                <div class="campo-busca">
+                    <svg th:replace="~{fragmentos/comum :: i('search')}"></svg>
+                    <input type="search" name="busca" th:value="${busca}" placeholder="Buscar pessoa" aria-label="Buscar">
+                </div>
+                <select name="vinculo" onchange="this.form.submit()" aria-label="Vínculo">
+                    <option value="">Vínculo: todos</option>
+                    <option th:each="t : ${tiposVinculo}" th:value="${t}" th:text="${t.descricao}"
+                            th:selected="${t == vinculoFiltro}"></option>
+                </select>
+                <select name="situacao" onchange="this.form.submit()" aria-label="Situação">
+                    <option value="">Situação: todas</option>
+                    <option th:each="s : ${situacoesFerias}" th:value="${s}" th:text="${s.descricao}"
+                            th:selected="${s == situacaoFiltro}"></option>
+                </select>
+                <button type="submit" class="botao">Filtrar</button>
+                <a th:if="${filtrando}" class="botao fantasma" th:href="@{/ferias/painel}">Limpar</a>
+            </form>
+
+            <div class="quadro">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Pessoa</th>
+                        <th>Vínculo</th>
+                        <th class="direita">Saldo</th>
+                        <th>Prazo mais próximo</th>
+                        <th>Situação</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${#lists.isEmpty(situacoes)}">
+                        <td colspan="5">
+                            <div class="vazio">
+                                <svg th:replace="~{fragmentos/comum :: i('search')}"></svg>
+                                Nenhuma pessoa corresponde aos filtros aplicados.
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:each="s : ${situacoes}" th:with="urgente=${s.periodoMaisUrgente}">
+                        <td>
+                            <a class="pessoa-celula" th:href="@{/pessoas/pagina/{id}(id=${s.pessoa.id})}">
+                                <span class="avatar" th:classappend="${s.pessoa.corAvatar}" th:text="${s.pessoa.iniciais}">AB</span>
+                                <span class="nome" th:text="${s.pessoa.nome}">Nome</span>
+                            </a>
+                        </td>
+                        <td><span class="etiqueta sem-ponto" th:classappend="${s.pessoa.possuiRegraDeFerias()} ? 'azul'"
+                                  th:text="${s.pessoa.tipoVinculo.descricao}">Vínculo</span></td>
+                        <td class="numerico direita"
+                            th:text="${s.pessoa.possuiRegraDeFerias()} ? ${s.saldoTotal} + ' dias' : '—'">—</td>
+                        <td class="numerico"
+                            th:text="${urgente != null} ? ${#temporals.format(urgente.dataLimiteGozo, 'dd/MM/yyyy')} : '—'">—</td>
+                        <td>
+                            <span class="etiqueta"
+                                  th:classappend="${s.situacao.name() == 'REGULAR'} ? 'verde'
+                                                : (${s.situacao.name() == 'PROXIMO_DO_VENCIMENTO'} ? 'ambar'
+                                                : (${s.situacao.name() == 'VENCIDO'} ? 'vermelha' : ''))"
+                                  th:text="${s.situacao.descricao}">Situação</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="nota">
+                Colaboradores MEI, PJ e voluntários não possuem férias trabalhistas: saldo e prazo não se
+                aplicam. O saldo não é armazenado; ele é calculado a partir dos períodos aquisitivos e das
+                ocorrências de férias registradas.
+            </p>
+
         </div>
-
-        <div class="indicadores">
-            <div class="indicador">
-                <div class="rotulo">Regular</div>
-                <div class="valor" th:text="${totalRegular}">0</div>
-                <div class="detalhe">pessoas CLT em dia</div>
-            </div>
-            <div class="indicador">
-                <div class="rotulo">A vencer</div>
-                <div class="valor ambar" th:text="${totalProximo}">0</div>
-                <div class="detalhe" th:text="'vencem em ate ' + ${diasDeAlerta} + ' dias'">vencem em breve</div>
-            </div>
-            <div class="indicador">
-                <div class="rotulo">Vencido</div>
-                <div class="valor vermelho" th:text="${totalVencido}">0</div>
-                <div class="detalhe">prazo de ferias expirado</div>
-            </div>
-            <div class="indicador">
-                <div class="rotulo">Sem regra CLT</div>
-                <div class="valor neutro" th:text="${totalSemRegra}">0</div>
-                <div class="detalhe">MEI, PJ e voluntarios</div>
-            </div>
-        </div>
-
-        <form class="filtros" method="get" th:action="@{/ferias/painel}">
-            <input type="search" name="busca" th:value="${busca}" placeholder="Buscar pessoa">
-
-            <select name="vinculo" onchange="this.form.submit()">
-                <option value="">Vinculo: todos</option>
-                <option th:each="t : ${tiposVinculo}"
-                        th:value="${t}" th:text="${t.descricao}"
-                        th:selected="${t == vinculoFiltro}"></option>
-            </select>
-
-            <select name="situacao" onchange="this.form.submit()">
-                <option value="">Situacao: todas</option>
-                <option th:each="s : ${situacoesFerias}"
-                        th:value="${s}" th:text="${s.descricao}"
-                        th:selected="${s == situacaoFiltro}"></option>
-            </select>
-
-            <button type="submit" class="botao">Filtrar</button>
-            <a th:if="${filtrando}" class="botao" th:href="@{/ferias/painel}">Limpar</a>
-        </form>
-
-        <div class="quadro">
-            <table>
-                <thead>
-                <tr>
-                    <th>Pessoa</th>
-                    <th>Vinculo</th>
-                    <th>Saldo</th>
-                    <th>Vence em</th>
-                    <th>Situacao</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:if="${#lists.isEmpty(situacoes)}">
-                    <td colspan="5" class="vazio">Nenhuma pessoa corresponde aos filtros aplicados.</td>
-                </tr>
-                <tr th:each="s : ${situacoes}" th:with="urgente=${s.periodoMaisUrgente}">
-                    <td class="principal">
-                        <a th:href="@{/pessoas/pagina/{id}(id=${s.pessoa.id})}" th:text="${s.pessoa.nome}">Nome</a>
-                    </td>
-                    <td th:text="${s.pessoa.tipoVinculo.descricao}">Vinculo</td>
-
-                    <td class="numerico"
-                        th:text="${s.pessoa.possuiRegraDeFerias()} ? ${s.saldoTotal} + ' dias' : '—'">—</td>
-
-                    <td class="numerico"
-                        th:text="${urgente != null}
-                                 ? ${#temporals.format(urgente.dataLimiteGozo, 'dd/MM/yyyy')} : '—'">—</td>
-
-                    <td>
-                        <span class="etiqueta"
-                              th:classappend="${s.situacao.name() == 'REGULAR'} ? 'verde'
-                                            : (${s.situacao.name() == 'PROXIMO_DO_VENCIMENTO'} ? 'ambar'
-                                            : (${s.situacao.name() == 'VENCIDO'} ? 'vermelha' : ''))"
-                              th:text="${s.situacao.descricao}">Situacao</span>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <p class="nota">
-            Colaboradores MEI, PJ e voluntarios nao possuem ferias trabalhistas: os campos
-            de saldo e vencimento nao se aplicam. O saldo nao e armazenado, e calculado a
-            partir dos periodos aquisitivos e das ocorrencias de ferias registradas.
-        </p>
-
     </main>
 </div>
 </body>

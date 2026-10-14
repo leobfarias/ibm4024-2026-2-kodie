@@ -73,7 +73,7 @@ public class BackupController {
     @PostMapping("/pagina/excluir")
     public String excluir(@RequestParam String arquivo, RedirectAttributes atributos) {
         backupService.excluir(arquivo);
-        atributos.addFlashAttribute("mensagem", "Backup excluido: " + arquivo);
+        atributos.addFlashAttribute("mensagem", "Backup excluído: " + arquivo);
         return "redirect:/backup/pagina";
     }
 
@@ -110,7 +110,7 @@ public class BackupController {
                             HttpServletRequest requisicao,
                             RedirectAttributes atributos) {
         if (!confirmo) {
-            atributos.addFlashAttribute("erro", "Marque a confirmacao para restaurar");
+            atributos.addFlashAttribute("erro", "Marque a confirmação para restaurar");
             return "redirect:/backup/pagina/restaurar?arquivo=" + arquivo;
         }
 

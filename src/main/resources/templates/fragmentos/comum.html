@@ -2,59 +2,108 @@
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
 <!--
     Fragmentos compartilhados por todas as telas.
-    Manter a navegacao num unico arquivo evita que ela saia de sincronia
-    entre as paginas.
+    Manter a navegação num único arquivo evita que ela saia de sincronia
+    entre as páginas.
 -->
 <head th:fragment="cabecalho(titulo)">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="'Sistema KODIE - ' + ${titulo}">Sistema KODIE</title>
+    <title th:text="${titulo} + ' · KODIE'">KODIE</title>
+    <!-- Aplica o tema salvo antes de desenhar a página, para não piscar no tema errado -->
+    <script>try{var t=localStorage.getItem('kodie-tema');if(t)document.documentElement.setAttribute('data-tema',t);}catch(e){}</script>
+    <link rel="icon" type="image/svg+xml" th:href="@{/img/favicon.svg}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
     <link rel="stylesheet" th:href="@{/css/estilo.css}">
+    <script th:src="@{/js/tema.js}" defer></script>
 </head>
 
 <body>
 
+<!-- Ícone do sprite: <svg th:replace="~{fragmentos/comum :: i('users')}"></svg> -->
+<svg th:fragment="i(nome)" class="icone" aria-hidden="true"><use th:href="@{'/img/icones.svg#i-' + ${nome}}"></use></svg>
+
 <aside class="lateral" th:fragment="lateral(ativo)">
-    <div class="lateral-marca">
-        <div class="nome">KODIE</div>
-        <div class="descricao">Gestao de pessoas</div>
+    <div class="marca">
+        <div class="marca-simbolo">K</div>
+        <div class="marca-texto">
+            <div class="nome">KODIE</div>
+            <div class="descricao">Gestão de pessoas</div>
+        </div>
     </div>
 
-    <nav class="lateral-menu">
-        <a th:href="@{/pessoas/pagina}" th:classappend="${ativo == 'pessoas'} ? 'ativo'">Pessoas</a>
-        <a th:href="@{/ferias/painel}" th:classappend="${ativo == 'ferias'} ? 'ativo'">Ferias</a>
-        <a th:if="${ehAdmin}" th:href="@{/ocorrencias/pagina/nova}" th:classappend="${ativo == 'ocorrencias'} ? 'ativo'">Ocorrencias</a>
-        <a th:href="@{/calendario/pagina}" th:classappend="${ativo == 'calendario'} ? 'ativo'">Calendario</a>
-        <a th:href="@{/indicadores/pagina}" th:classappend="${ativo == 'indicadores'} ? 'ativo'">Indicadores</a>
-        <a th:if="${ehAdmin}" th:href="@{/usuarios/pagina}" th:classappend="${ativo == 'acessos'} ? 'ativo'">Acessos</a>
-        <a th:if="${ehAdmin}" th:href="@{/backup/pagina}" th:classappend="${ativo == 'backup'} ? 'ativo'">Backup</a>
+    <nav class="lateral-menu" aria-label="Navegação principal">
+        <div class="lateral-grupo">Visão geral</div>
+        <a th:href="@{/inicio}" th:classappend="${ativo == 'inicio'} ? 'ativo'">
+            <svg th:replace="~{fragmentos/comum :: i('house')}"></svg> Início
+        </a>
+        <a th:href="@{/indicadores/pagina}" th:classappend="${ativo == 'indicadores'} ? 'ativo'">
+            <svg th:replace="~{fragmentos/comum :: i('chart-column')}"></svg> Indicadores
+        </a>
+        <a th:href="@{/calendario/pagina}" th:classappend="${ativo == 'calendario'} ? 'ativo'">
+            <svg th:replace="~{fragmentos/comum :: i('calendar-days')}"></svg> Calendário
+        </a>
+
+        <div class="lateral-grupo">Gestão</div>
+        <a th:href="@{/pessoas/pagina}" th:classappend="${ativo == 'pessoas'} ? 'ativo'">
+            <svg th:replace="~{fragmentos/comum :: i('users')}"></svg> Pessoas
+        </a>
+        <a th:href="@{/ferias/painel}" th:classappend="${ativo == 'ferias'} ? 'ativo'">
+            <svg th:replace="~{fragmentos/comum :: i('sun')}"></svg> Férias
+        </a>
+        <a th:if="${ehAdmin}" th:href="@{/ocorrencias/pagina/nova}" th:classappend="${ativo == 'ocorrencias'} ? 'ativo'">
+            <svg th:replace="~{fragmentos/comum :: i('calendar-plus')}"></svg> Registrar ocorrência
+        </a>
+
+        <th:block th:if="${ehAdmin}">
+            <div class="lateral-grupo">Administração</div>
+            <a th:href="@{/usuarios/pagina}" th:classappend="${ativo == 'acessos'} ? 'ativo'">
+                <svg th:replace="~{fragmentos/comum :: i('shield-check')}"></svg> Acessos
+            </a>
+            <a th:href="@{/backup/pagina}" th:classappend="${ativo == 'backup'} ? 'ativo'">
+                <svg th:replace="~{fragmentos/comum :: i('database-backup')}"></svg> Backup
+            </a>
+        </th:block>
     </nav>
 
     <div class="lateral-rodape" th:if="${usuarioLogado != null}">
-        <div class="usuario">
-            <div class="inicial" th:text="${usuarioLogado.iniciais}">AD</div>
+        <div class="cartao-usuario">
+            <span class="avatar" th:classappend="${usuarioLogado.corAvatar}" th:text="${usuarioLogado.iniciais}">AD</span>
             <div class="identificacao">
                 <div class="nome" th:text="${usuarioLogado.nome}">Nome</div>
                 <div class="papel" th:text="${usuarioLogado.perfil.descricao}">Perfil</div>
             </div>
         </div>
-        <div class="conta">
-            <a th:href="@{/conta/senha}" th:classappend="${ativo == 'conta'} ? 'ativo'">Minha senha</a>
+        <div class="acoes-conta">
+            <button type="button" class="botao-conta" data-alternar-tema title="Alternar tema claro e escuro">
+                <span class="tema-escuro-icone"><svg class="icone" aria-hidden="true"><use th:href="@{/img/icones.svg#i-moon}"></use></svg></span>
+                <span class="tema-claro-icone"><svg class="icone" aria-hidden="true"><use th:href="@{/img/icones.svg#i-sun}"></use></svg></span>
+                <span class="visualmente-oculto">Alternar tema</span>
+            </button>
+            <a class="botao-conta" th:href="@{/conta/senha}" th:classappend="${ativo == 'conta'} ? 'ativo'" title="Minha senha">
+                <svg th:replace="~{fragmentos/comum :: i('key-round')}"></svg>
+                <span class="visualmente-oculto">Minha senha</span>
+            </a>
             <form th:action="@{/logout}" method="post">
-                <button type="submit">Sair</button>
+                <button type="submit" class="botao-conta" title="Sair">
+                    <svg th:replace="~{fragmentos/comum :: i('log-out')}"></svg> Sair
+                </button>
             </form>
         </div>
     </div>
 </aside>
 
 <!-- Mensagens de sucesso e erro vindas do redirect -->
-<div th:fragment="avisos">
-    <p th:if="${mensagem}" th:text="${mensagem}" class="aviso ok"></p>
-    <p th:if="${erro}" th:text="${erro}" class="aviso ruim"></p>
+<div th:fragment="avisos" th:remove="tag">
+    <p th:if="${mensagem}" class="aviso ok">
+        <svg th:replace="~{fragmentos/comum :: i('circle-check')}"></svg>
+        <span th:text="${mensagem}">ok</span>
+    </p>
+    <p th:if="${erro}" class="aviso ruim">
+        <svg th:replace="~{fragmentos/comum :: i('triangle-alert')}"></svg>
+        <span th:text="${erro}">erro</span>
+    </p>
 </div>
 
 </body>

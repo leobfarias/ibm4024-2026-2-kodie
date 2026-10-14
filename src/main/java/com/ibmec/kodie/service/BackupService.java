@@ -199,7 +199,7 @@ public class BackupService {
                     .sorted(Comparator.comparing(BackupSalvo::nome).reversed())
                     .toList();
         } catch (IOException e) {
-            throw new UncheckedIOException("Nao foi possivel listar a pasta de backups", e);
+            throw new UncheckedIOException("Não foi possível listar a pasta de backups", e);
         }
     }
 
@@ -207,7 +207,7 @@ public class BackupService {
         try {
             return Files.readAllBytes(caminhoSeguro(nome));
         } catch (IOException e) {
-            throw new UncheckedIOException("Nao foi possivel ler o backup " + nome, e);
+            throw new UncheckedIOException("Não foi possível ler o backup " + nome, e);
         }
     }
 
@@ -216,7 +216,7 @@ public class BackupService {
             Files.deleteIfExists(caminhoSeguro(nome));
             log.info(">>> Backup excluido: {}", nome);
         } catch (IOException e) {
-            throw new UncheckedIOException("Nao foi possivel excluir o backup " + nome, e);
+            throw new UncheckedIOException("Não foi possível excluir o backup " + nome, e);
         }
     }
 
@@ -229,11 +229,11 @@ public class BackupService {
         try {
             ArquivoDeBackup lido = json.readValue(conteudo, ArquivoDeBackup.class);
             if (lido == null || lido.formato() < 1) {
-                throw new IllegalArgumentException("O arquivo nao e um backup do KODIE");
+                throw new IllegalArgumentException("O arquivo não é um backup do KODIE");
             }
         } catch (JacksonException e) {
-            throw new IllegalArgumentException("O arquivo nao e um backup do KODIE valido: JSON ilegivel "
-                    + "ou com valores que o sistema nao reconhece");
+            throw new IllegalArgumentException("O arquivo não é um backup do KODIE válido: JSON ilegível "
+                    + "ou com valores que o sistema não reconhece");
         }
         String nome = "kodie-backup-" + LocalDateTime.now().format(CARIMBO) + "-enviado.json";
         gravar(diretorio.resolve(nome), conteudo);
@@ -246,14 +246,14 @@ public class BackupService {
      */
     private Path caminhoSeguro(String nome) {
         if (nome == null || !NOME_VALIDO.matcher(nome).matches()) {
-            throw new IllegalArgumentException("Nome de backup invalido");
+            throw new IllegalArgumentException("Nome de backup inválido");
         }
         Path caminho = diretorio.resolve(nome).normalize();
         if (!caminho.startsWith(diretorio)) {
-            throw new IllegalArgumentException("Nome de backup invalido");
+            throw new IllegalArgumentException("Nome de backup inválido");
         }
         if (!Files.exists(caminho)) {
-            throw new RecursoNaoEncontradoException("Backup nao encontrado: " + nome);
+            throw new RecursoNaoEncontradoException("Backup não encontrado: " + nome);
         }
         return caminho;
     }
@@ -282,7 +282,7 @@ public class BackupService {
                 // Windows: sem permissoes POSIX
             }
         } catch (IOException e) {
-            throw new UncheckedIOException("Nao foi possivel gravar o backup em " + destino, e);
+            throw new UncheckedIOException("Não foi possível gravar o backup em " + destino, e);
         }
     }
 
@@ -299,7 +299,7 @@ public class BackupService {
         try {
             conteudo = json.readValue(lerArquivo(nome), ArquivoDeBackup.class);
         } catch (JacksonException e) {
-            return new ResumoDeBackup(nome, null, List.of("Arquivo ilegivel: nao e um JSON de backup do KODIE"));
+            return new ResumoDeBackup(nome, null, List.of("Arquivo ilegível: não é um JSON de backup do KODIE"));
         }
         return new ResumoDeBackup(nome, conteudo, verificar(conteudo));
     }
@@ -308,12 +308,12 @@ public class BackupService {
         List<String> problemas = new ArrayList<>();
 
         if (b.formato() != ArquivoDeBackup.FORMATO_ATUAL) {
-            problemas.add("Formato " + b.formato() + " nao suportado por esta versao do sistema (esperado "
+            problemas.add("Formato " + b.formato() + " não suportado por esta versão do sistema (esperado "
                     + ArquivoDeBackup.FORMATO_ATUAL + ")");
             return problemas;
         }
         if (b.usuarios() == null || b.pessoas() == null || b.ocorrencias() == null || b.periodosAquisitivos() == null) {
-            problemas.add("Arquivo incompleto: faltam secoes de dados");
+            problemas.add("Arquivo incompleto: faltam seções de dados");
             return problemas;
         }
 
@@ -321,25 +321,25 @@ public class BackupService {
         boolean temAdmin = b.usuarios().stream()
                 .anyMatch(u -> u.ativo() && u.perfil() == PerfilAcesso.ADMIN);
         if (!temAdmin) {
-            problemas.add("O backup nao tem nenhum administrador ativo: ninguem conseguiria entrar no sistema depois");
+            problemas.add("O backup não tem nenhum administrador ativo: ninguém conseguiria entrar no sistema depois");
         }
 
-        repetidos(b.usuarios(), UsuarioRegistro::id, "Usuario com id repetido: ", problemas);
+        repetidos(b.usuarios(), UsuarioRegistro::id, "Usuário com id repetido: ", problemas);
         repetidos(b.usuarios(), UsuarioRegistro::login, "Login repetido: ", problemas);
         repetidos(b.pessoas(), PessoaRegistro::id, "Pessoa com id repetido: ", problemas);
         repetidos(b.pessoas(), PessoaRegistro::cpf, "CPF repetido: ", problemas);
-        repetidos(b.ocorrencias(), OcorrenciaRegistro::id, "Ocorrencia com id repetido: ", problemas);
-        repetidos(b.periodosAquisitivos(), PeriodoRegistro::id, "Periodo aquisitivo com id repetido: ", problemas);
+        repetidos(b.ocorrencias(), OcorrenciaRegistro::id, "Ocorrência com id repetido: ", problemas);
+        repetidos(b.periodosAquisitivos(), PeriodoRegistro::id, "Período aquisitivo com id repetido: ", problemas);
 
         Set<Long> idsDePessoas = b.pessoas().stream().map(PessoaRegistro::id).collect(Collectors.toSet());
 
         for (UsuarioRegistro u : b.usuarios()) {
-            if (u.id() == null) problemas.add("Usuario sem id: " + u.login());
+            if (u.id() == null) problemas.add("Usuário sem id: " + u.login());
             if (u.senhaHash() == null || !HASH_BCRYPT.matcher(u.senhaHash()).matches()) {
-                problemas.add("Usuario " + u.login() + ": senha em formato invalido (esperado hash BCrypt)");
+                problemas.add("Usuário " + u.login() + ": senha em formato inválido (esperado hash BCrypt)");
             }
             Usuario entidade = new Usuario(u.login(), u.nome(), u.senhaHash(), u.perfil());
-            validar(entidade, "Usuario " + u.login(), problemas);
+            validar(entidade, "Usuário " + u.login(), problemas);
         }
 
         for (PessoaRegistro p : b.pessoas()) {
@@ -351,24 +351,24 @@ public class BackupService {
         }
 
         for (OcorrenciaRegistro o : b.ocorrencias()) {
-            if (o.id() == null) problemas.add("Ocorrencia sem id");
+            if (o.id() == null) problemas.add("Ocorrência sem id");
             if (o.pessoaId() != null && !idsDePessoas.contains(o.pessoaId())) {
-                problemas.add("Ocorrencia " + o.id() + " aponta para a pessoa " + o.pessoaId() + ", que nao esta no backup");
+                problemas.add("Ocorrência " + o.id() + " aponta para a pessoa " + o.pessoaId() + ", que não está no backup");
             }
             if (o.dataInicio() != null && o.dataFim() != null && o.dataFim().isBefore(o.dataInicio())) {
-                problemas.add("Ocorrencia " + o.id() + ": data de fim anterior a de inicio");
+                problemas.add("Ocorrência " + o.id() + ": data de fim anterior à de início");
             }
             Ocorrencia entidade = new Ocorrencia(o.tipo(), o.dataInicio(), o.dataFim(), o.situacao(), o.observacao(), null);
-            validar(entidade, "Ocorrencia " + o.id(), problemas);
+            validar(entidade, "Ocorrência " + o.id(), problemas);
         }
 
         for (PeriodoRegistro p : b.periodosAquisitivos()) {
             if (p.id() == null || p.numero() == null || p.dataInicio() == null || p.dataFim() == null
                     || p.diasDeDireito() == null || p.dataLimiteGozo() == null) {
-                problemas.add("Periodo aquisitivo " + p.id() + " com campos faltando");
+                problemas.add("Período aquisitivo " + p.id() + " com campos faltando");
             }
             if (p.pessoaId() == null || !idsDePessoas.contains(p.pessoaId())) {
-                problemas.add("Periodo aquisitivo " + p.id() + " aponta para a pessoa " + p.pessoaId() + ", que nao esta no backup");
+                problemas.add("Período aquisitivo " + p.id() + " aponta para a pessoa " + p.pessoaId() + ", que não está no backup");
             }
         }
         return problemas;
@@ -403,7 +403,7 @@ public class BackupService {
     public String restaurar(String nome) {
         ResumoDeBackup resumo = analisar(nome);
         if (!resumo.isRestauravel()) {
-            throw new IllegalArgumentException("O backup nao pode ser restaurado: "
+            throw new IllegalArgumentException("O backup não pode ser restaurado: "
                     + String.join("; ", resumo.problemas()));
         }
 

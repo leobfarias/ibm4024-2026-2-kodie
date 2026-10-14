@@ -81,7 +81,7 @@ public class OcorrenciaWebController {
             return "ocorrencia";
         }
 
-        atributos.addFlashAttribute("mensagem", "Ocorrencia registrada com sucesso");
+        atributos.addFlashAttribute("mensagem", "Ocorrência registrada com sucesso");
 
         Pessoa pessoa = novaOcorrencia.getPessoa();
         return (pessoa != null && pessoa.getId() != null)
@@ -94,7 +94,7 @@ public class OcorrenciaWebController {
                           @RequestParam(required = false) Long pessoaId,
                           RedirectAttributes atributos) {
         ocorrenciaService.deletar(id);
-        atributos.addFlashAttribute("mensagem", "Ocorrencia removida");
+        atributos.addFlashAttribute("mensagem", "Ocorrência removida");
         return (pessoaId != null) ? "redirect:/pessoas/pagina/" + pessoaId : "redirect:/ocorrencias/nova";
     }
 

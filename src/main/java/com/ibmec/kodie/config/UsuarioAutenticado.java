@@ -1,5 +1,6 @@
 package com.ibmec.kodie.config;
 
+import com.ibmec.kodie.model.Avatar;
 import com.ibmec.kodie.model.PerfilAcesso;
 import com.ibmec.kodie.model.Usuario;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -41,9 +42,10 @@ public class UsuarioAutenticado extends User {
     }
 
     public String getIniciais() {
-        String[] partes = nome.trim().split("\\s+");
-        String primeira = partes[0].substring(0, 1);
-        String segunda = partes.length > 1 ? partes[partes.length - 1].substring(0, 1) : "";
-        return (primeira + segunda).toUpperCase();
+        return Avatar.iniciais(nome);
+    }
+
+    public String getCorAvatar() {
+        return Avatar.cor(nome);
     }
 }

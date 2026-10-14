@@ -79,7 +79,7 @@ consultam; apenas o administrador cadastra, altera e exclui.
 
 | Situação | Resposta |
 |---|---|
-| Sem credencial ou senha errada | **401** `{"erro":"Autenticacao necessaria: informe usuario e senha"}` |
+| Sem credencial ou senha errada | **401** `{"erro":"Autenticação necessária: informe usuário e senha"}` |
 | Perfil de visualização tentando escrever | **403** `{"erro":"Acesso negado: o seu perfil permite apenas consulta"}` |
 
 ### Pessoas
@@ -123,7 +123,8 @@ consultam; apenas o administrador cadastra, altera e exclui.
 
 | Caminho | Descrição |
 |---|---|
-| `/` | Redireciona para a lista de pessoas |
+| `/` | Redireciona para a página inicial |
+| `/inicio` | Resumo do dia: números, alertas de férias, ausentes, próximos 30 dias e atalhos |
 | `/pessoas/pagina` | Lista de pessoas, com busca e filtros, e formulário de cadastro |
 | `/pessoas/pagina/{id}` | Ficha individual: dados, vínculo, histórico de férias e ocorrências |
 | `/ferias/painel` | Painel de férias: indicadores e tabela, com busca e filtros |
@@ -135,9 +136,25 @@ consultam; apenas o administrador cadastra, altera e exclui.
 | `/calendario/pagina` | Calendário mensal de ocorrências, com filtro por tipo |
 | `/indicadores/pagina` | Indicadores do cadastro: quadro, vínculos, férias, ocorrências, ausências |
 
-As telas seguem o protótipo visual validado com a cliente: navegação lateral fixa,
-tipografia IBM Plex, indicadores numéricos no painel de férias e etiquetas de situação
-em verde, âmbar, vermelho e neutro.
+### Interface
+
+Visual de produto SaaS: navegação lateral com ícones, agrupada em visão geral, gestão e
+administração; avatares com as iniciais em cores fixas por pessoa; indicadores com ícone;
+e etiquetas de situação em verde, âmbar, vermelho e neutro. A estrutura de navegação
+segue o protótipo validado com a cliente.
+
+- **Tema claro e escuro.** O sistema segue a preferência do sistema operacional, e o botão
+  no rodapé da navegação alterna e lembra a escolha naquele navegador. Todas as cores
+  vivem em variáveis CSS no início de `static/css/estilo.css`; trocar a paleta, por
+  exemplo para as cores da marca, é mexer só nesses blocos.
+- **Página de erro própria** (`templates/error.html`) para qualquer erro nas telas, no
+  lugar da página padrão do Spring. A API continua respondendo em JSON.
+- **Ícones** num único arquivo SVG (`static/img/icones.svg`), um subconjunto de 30 ícones
+  do [Lucide](https://lucide.dev) (licença ISC), sem depender de CDN para funcionar.
+- **Telas estreitas:** em celular, a navegação vira uma barra no topo, formulários e
+  filtros passam para uma coluna, e tabelas rolam na horizontal dentro do próprio cartão.
+- **Textos com acentuação correta** em toda a interface, nas mensagens de validação, nas
+  respostas da API e nos arquivos CSV.
 
 ### Calendário
 
@@ -513,8 +530,20 @@ O perfil de visualização vê as mesmas telas, sem formulários e sem botões d
 - **API REST:** usuário e senha a cada requisição (HTTP Basic). Erros em JSON, no mesmo
   formato do `ManipuladorDeErros`.
 
-O sistema distingue um do outro pelo cabeçalho `Accept`: o navegador que chega sem login
-vai para a tela de entrada; um cliente de API recebe 401 em JSON.
+Quem chega sem login recebe uma resposta conforme o tipo de pedido:
+
+| Pedido | Resposta |
+|---|---|
+| Abertura de página no navegador | Redireciona para a tela de login e, depois dela, volta à página pedida |
+| Pedido do navegador em segundo plano (ícone, imagem) | 401 **sem** o desafio `Basic` |
+| Cliente de API (`curl`, Postman) | 401 em JSON, com o desafio `Basic` |
+
+O navegador é reconhecido pelos cabeçalhos `Sec-Fetch-*`, que os clientes de API não
+enviam. A distinção importa: o desafio `Basic` faz o navegador abrir a janela nativa de
+login por cima da tela do sistema. Pelo mesmo motivo, os arquivos que os navegadores
+pedem sozinhos (`/favicon.ico`, `/apple-touch-icon*.png`, `/.well-known/**`) são públicos.
+E só a abertura de páginas é lembrada para depois do login, para que um ícone pedido em
+segundo plano nunca vire o destino do login.
 
 ### Senhas
 
@@ -625,8 +654,9 @@ Java 25 · Spring Boot 4.1.1 · Spring Web · Spring Data JPA · Hibernate · Be
 Spring Security · Thymeleaf · Flyway · H2 (desenvolvimento) · PostgreSQL (produção) · Maven.
 
 O front-end é HTML, CSS e Thymeleaf renderizado no servidor, sem framework de JavaScript
-e sem etapa de build de front-end. A única dependência externa é a fonte IBM Plex,
-carregada do Google Fonts. A navegação lateral vive em um fragmento Thymeleaf
+e sem etapa de build de front-end. O único JavaScript próprio é o botão de tema
+(`static/js/tema.js`, 15 linhas). A única dependência externa é a fonte Inter, carregada do
+Google Fonts; sem ela, o navegador usa a fonte do sistema. A navegação lateral vive em um fragmento Thymeleaf
 (`templates/fragmentos/comum.html`) reutilizado por todas as telas, para não sair de
 sincronia entre elas.
 

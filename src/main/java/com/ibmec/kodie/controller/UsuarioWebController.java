@@ -52,7 +52,7 @@ public class UsuarioWebController {
                             RedirectAttributes atributos) {
 
         if (form.getSenha() != null && !form.getSenha().equals(form.getConfirmacaoSenha())) {
-            resultado.rejectValue("confirmacaoSenha", "naoConfere", "As senhas nao conferem");
+            resultado.rejectValue("confirmacaoSenha", "naoConfere", "As senhas não conferem");
         }
         if (resultado.hasErrors()) {
             return recarregar(model, form);
@@ -65,7 +65,7 @@ public class UsuarioWebController {
             return recarregar(model, form);
         }
 
-        atributos.addFlashAttribute("mensagem", "Usuario " + form.getLogin() + " criado com sucesso");
+        atributos.addFlashAttribute("mensagem", "Usuário " + form.getLogin() + " criado com sucesso");
         return "redirect:/usuarios/pagina";
     }
 
@@ -92,7 +92,7 @@ public class UsuarioWebController {
         try {
             usuarioService.alterarSituacao(id, ativo, principal.getName());
             encerrarSessoesDe(id);
-            atributos.addFlashAttribute("mensagem", ativo ? "Usuario reativado" : "Usuario desativado");
+            atributos.addFlashAttribute("mensagem", ativo ? "Usuário reativado" : "Usuário desativado");
         } catch (IllegalArgumentException e) {
             atributos.addFlashAttribute("erro", e.getMessage());
         }
@@ -107,7 +107,7 @@ public class UsuarioWebController {
     public String formularioSenha(@PathVariable Long id, Model model, RedirectAttributes atributos) {
         Optional<Usuario> usuario = usuarioService.buscarPorId(id);
         if (usuario.isEmpty()) {
-            atributos.addFlashAttribute("erro", "Usuario nao encontrado: " + id);
+            atributos.addFlashAttribute("erro", "Usuário não encontrado: " + id);
             return "redirect:/usuarios/pagina";
         }
         model.addAttribute("senhaForm", new SenhaForm());
@@ -123,12 +123,12 @@ public class UsuarioWebController {
 
         Optional<Usuario> usuario = usuarioService.buscarPorId(id);
         if (usuario.isEmpty()) {
-            atributos.addFlashAttribute("erro", "Usuario nao encontrado: " + id);
+            atributos.addFlashAttribute("erro", "Usuário não encontrado: " + id);
             return "redirect:/usuarios/pagina";
         }
 
         if (form.getNovaSenha() != null && !form.getNovaSenha().equals(form.getConfirmacaoSenha())) {
-            resultado.rejectValue("confirmacaoSenha", "naoConfere", "As senhas nao conferem");
+            resultado.rejectValue("confirmacaoSenha", "naoConfere", "As senhas não conferem");
         }
         if (resultado.hasErrors()) {
             return prepararTelaDeSenha(model, usuario.get());

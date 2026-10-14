@@ -47,7 +47,7 @@ public class UsuarioService {
         String loginNormalizado = login == null ? null : login.trim().toLowerCase();
 
         if (repository.existsByLogin(loginNormalizado)) {
-            throw new IllegalArgumentException("Ja existe um usuario com o login " + loginNormalizado);
+            throw new IllegalArgumentException("Já existe um usuário com o login " + loginNormalizado);
         }
         validarSenha(senha);
 
@@ -64,7 +64,7 @@ public class UsuarioService {
         Usuario usuario = encontrar(id);
 
         if (usuario.getLogin().equals(loginDeQuemAltera)) {
-            throw new IllegalArgumentException("Voce nao pode alterar o seu proprio perfil de acesso");
+            throw new IllegalArgumentException("Você não pode alterar o seu próprio perfil de acesso");
         }
         if (usuario.isAdmin() && novoPerfil != PerfilAcesso.ADMIN && usuario.isAtivo()) {
             garantirQueSobraOutroAdmin();
@@ -79,7 +79,7 @@ public class UsuarioService {
         Usuario usuario = encontrar(id);
 
         if (!ativo && usuario.getLogin().equals(loginDeQuemAltera)) {
-            throw new IllegalArgumentException("Voce nao pode desativar o seu proprio usuario");
+            throw new IllegalArgumentException("Você não pode desativar o seu próprio usuário");
         }
         if (!ativo && usuario.isAdmin() && usuario.isAtivo()) {
             garantirQueSobraOutroAdmin();
@@ -102,10 +102,10 @@ public class UsuarioService {
     @Transactional
     public void trocarPropriaSenha(String login, String senhaAtual, String novaSenha) {
         Usuario usuario = repository.findByLogin(login)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuario nao encontrado: " + login));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado: " + login));
 
         if (!passwordEncoder.matches(senhaAtual, usuario.getSenhaHash())) {
-            throw new IllegalArgumentException("A senha atual nao confere");
+            throw new IllegalArgumentException("A senha atual não confere");
         }
         if (passwordEncoder.matches(novaSenha, usuario.getSenhaHash())) {
             throw new IllegalArgumentException("A nova senha deve ser diferente da atual");
@@ -136,6 +136,6 @@ public class UsuarioService {
 
     private Usuario encontrar(Long id) {
         return repository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuario nao encontrado: " + id));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado: " + id));
     }
 }

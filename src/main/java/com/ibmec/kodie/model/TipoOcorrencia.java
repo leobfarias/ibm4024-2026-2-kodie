@@ -6,10 +6,10 @@ package com.ibmec.kodie.model;
  */
 public enum TipoOcorrencia {
 
-    FERIAS("Ferias"),
+    FERIAS("Férias"),
     FOLGA("Folga"),
-    LICENCA("Licenca"),
-    AUSENCIA("Ausencia"),
+    LICENCA("Licença"),
+    AUSENCIA("Ausência"),
     FERIADO_TRABALHADO("Feriado trabalhado");
 
     private final String descricao;

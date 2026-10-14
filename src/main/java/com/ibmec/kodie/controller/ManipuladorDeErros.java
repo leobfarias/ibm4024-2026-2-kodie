@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.HashMap;
@@ -13,8 +14,11 @@ import java.util.Map;
 /**
  * Traduz excecoes em codigos HTTP. Sem esta classe, uma validacao reprovada
  * viraria 500 em vez de 400.
+ *
+ * Vale apenas para a API (@RestController): responde em JSON. As telas
+ * recebem a pagina de erro do sistema (templates/error.html).
  */
-@RestControllerAdvice
+@RestControllerAdvice(annotations = RestController.class)
 public class ManipuladorDeErros {
 
     /** Validacao de campo reprovada (@NotBlank, @Email, @Pattern...). */

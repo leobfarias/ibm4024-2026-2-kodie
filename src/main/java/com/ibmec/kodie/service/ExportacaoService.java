@@ -42,7 +42,7 @@ public class ExportacaoService {
 
     /** Pessoas, respeitando os mesmos filtros da tela de listagem. */
     public byte[] pessoas(String busca, TipoVinculo vinculo, SituacaoVinculo situacao) {
-        Csv csv = new Csv("Nome", "CPF", "E-mail", "Cargo", "Vinculo", "Situacao", "Entrada", "Saida", "Ocorrencias");
+        Csv csv = new Csv("Nome", "CPF", "E-mail", "Cargo", "Vínculo", "Situação", "Entrada", "Saída", "Ocorrências");
         for (PessoaResumo r : pessoaService.listarResumo(busca, vinculo, situacao)) {
             Pessoa p = r.pessoa();
             csv.linha(p.getNome(), p.getCpf(), p.getEmail(), p.getCargo(),
@@ -53,7 +53,7 @@ public class ExportacaoService {
     }
 
     public byte[] ocorrencias() {
-        Csv csv = new Csv("Pessoa", "Tipo", "Inicio", "Fim", "Dias", "Situacao", "Observacao");
+        Csv csv = new Csv("Pessoa", "Tipo", "Início", "Fim", "Dias", "Situação", "Observação");
         List<Ocorrencia> todas = ocorrenciaRepository.findAll().stream()
                 .sorted(Comparator.comparing(Ocorrencia::getDataInicio).reversed())
                 .toList();
@@ -67,7 +67,7 @@ public class ExportacaoService {
 
     /** Situacao de ferias de todo o cadastro, como no painel. */
     public byte[] ferias() {
-        Csv csv = new Csv("Pessoa", "Vinculo", "Situacao de ferias", "Saldo (dias)", "Prazo mais proximo", "Periodos completos");
+        Csv csv = new Csv("Pessoa", "Vínculo", "Situação de férias", "Saldo (dias)", "Prazo mais próximo", "Períodos completos");
         for (SituacaoDeFerias s : feriasService.montarPainel()) {
             boolean clt = s.pessoa().possuiRegraDeFerias();
             var urgente = s.getPeriodoMaisUrgente();

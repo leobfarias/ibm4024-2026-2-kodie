@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/comum :: cabecalho('Início')}"></head>
+<body>
+<div class="aplicacao">
+
+    <aside th:replace="~{fragmentos/comum :: lateral('inicio')}"></aside>
+
+    <main class="conteudo" th:with="p=${painel}">
+        <div class="conteudo-limite">
+
+            <div th:replace="~{fragmentos/comum :: avisos}"></div>
+
+            <div class="cabecalho saudacao">
+                <div>
+                    <h1 th:text="${saudacao} + ', ' + ${primeiroNome}">Bom dia</h1>
+                    <p class="resumo" th:text="${dataPorExtenso}">data</p>
+                </div>
+            </div>
+
+            <div class="indicadores">
+                <a class="indicador" th:href="@{/pessoas/pagina}">
+                    <span class="selo"><svg th:replace="~{fragmentos/comum :: i('users')}"></svg></span>
+                    <div class="rotulo">Quadro atual</div>
+                    <div class="valor" th:text="${p.quadroAtual}">0</div>
+                    <div class="detalhe" th:text="'de ' + ${p.totalCadastrado} + ' pessoas cadastradas'">detalhe</div>
+                </a>
+                <a class="indicador" th:href="@{/calendario/pagina}">
+                    <span class="selo neutro"><svg th:replace="~{fragmentos/comum :: i('user-round-x')}"></svg></span>
+                    <div class="rotulo">Ausentes hoje</div>
+                    <div class="valor" th:text="${#lists.size(p.ausentesHoje)}">0</div>
+                    <div class="detalhe">férias, folga, licença ou ausência</div>
+                </a>
+                <a class="indicador" th:href="@{/ferias/painel(situacao='PROXIMO_DO_VENCIMENTO')}">
+                    <span class="selo ambar"><svg th:replace="~{fragmentos/comum :: i('clock')}"></svg></span>
+                    <div class="rotulo">Férias a vencer</div>
+                    <div class="valor" th:classappend="${p.feriasPorSituacao[1].quantidade > 0} ? 'ambar'"
+                         th:text="${p.feriasPorSituacao[1].quantidade}">0</div>
+                    <div class="detalhe">pessoas com prazo próximo</div>
+                </a>
+                <a class="indicador" th:href="@{/ferias/painel(situacao='VENCIDO')}">
+                    <span class="selo vermelho"><svg th:replace="~{fragmentos/comum :: i('triangle-alert')}"></svg></span>
+                    <div class="rotulo">Férias vencidas</div>
+                    <div class="valor" th:classappend="${p.pessoasComFeriasVencidas > 0} ? 'vermelho'"
+                         th:text="${p.pessoasComFeriasVencidas}">0</div>
+                    <div class="detalhe" th:text="${p.diasDeFeriasVencidos} + ' dias de passivo'">dias</div>
+                </a>
+            </div>
+
+            <div class="grade-inicio">
+                <div class="coluna">
+                <section class="cartao">
+                    <div class="cartao-titulo">
+                        <span class="titulo-com-icone"><svg th:replace="~{fragmentos/comum :: i('triangle-alert')}"></svg> Precisa de atenção</span>
+                        <a class="complemento" th:href="@{/ferias/painel}"
+                           th:text="${totalDeAlertas > #lists.size(alertas)} ? 'ver todos (' + ${totalDeAlertas} + ')' : 'painel de férias'">painel</a>
+                    </div>
+                    <div class="vazio" th:if="${#lists.isEmpty(alertas)}">
+                        <svg th:replace="~{fragmentos/comum :: i('circle-check')}"></svg>
+                        Nenhum prazo de férias em risco.
+                    </div>
+                    <ul class="lista-simples" th:unless="${#lists.isEmpty(alertas)}">
+                        <li th:each="s : ${alertas}" th:with="u=${s.periodoMaisUrgente}">
+                            <a class="pessoa-celula" th:href="@{/pessoas/pagina/{id}(id=${s.pessoa.id})}">
+                                <span class="avatar pequeno" th:classappend="${s.pessoa.corAvatar}" th:text="${s.pessoa.iniciais}">AB</span>
+                                <span>
+                                    <span class="nome" th:text="${s.pessoa.nome}">Nome</span>
+                                    <span class="sub" style="display:block" th:text="${s.saldoTotal} + ' dias de saldo'">saldo</span>
+                                </span>
+                            </a>
+                            <span class="etiqueta" th:classappend="${s.situacao.name() == 'VENCIDO'} ? 'vermelha' : 'ambar'"
+                                  th:text="${u.vencido} ? 'Venceu em ' + ${#temporals.format(u.dataLimiteGozo, 'dd/MM/yyyy')}
+                                                         : 'Vence em ' + ${#temporals.format(u.dataLimiteGozo, 'dd/MM/yyyy')}">prazo</span>
+                        </li>
+                    </ul>
+                </section>
+                <section class="cartao">
+                    <div class="cartao-titulo">
+                        <span class="titulo-com-icone"><svg th:replace="~{fragmentos/comum :: i('sparkles')}"></svg> Atalhos</span>
+                    </div>
+                    <div class="atalhos">
+                        <a th:if="${ehAdmin}" class="atalho" th:href="@{/pessoas/pagina#cadastro}">
+                            <svg th:replace="~{fragmentos/comum :: i('user-plus')}"></svg> Nova pessoa
+                        </a>
+                        <a th:if="${ehAdmin}" class="atalho" th:href="@{/ocorrencias/pagina/nova}">
+                            <svg th:replace="~{fragmentos/comum :: i('calendar-plus')}"></svg> Registrar ocorrência
+                        </a>
+                        <a class="atalho" th:href="@{/pessoas/pagina}">
+                            <svg th:replace="~{fragmentos/comum :: i('search')}"></svg> Buscar pessoa
+                        </a>
+                        <a class="atalho" th:href="@{/exportacao/pessoas.csv}">
+                            <svg th:replace="~{fragmentos/comum :: i('file-spreadsheet')}"></svg> Exportar planilha
+                        </a>
+                        <a th:if="${ehAdmin}" class="atalho" th:href="@{/backup/pagina}">
+                            <svg th:replace="~{fragmentos/comum :: i('database-backup')}"></svg> Backup
+                        </a>
+                        <a class="atalho" th:href="@{/indicadores/pagina}">
+                            <svg th:replace="~{fragmentos/comum :: i('chart-column')}"></svg> Indicadores
+                        </a>
+                    </div>
+                </section>
+                </div>
+                <div class="coluna">
+                <section class="cartao">
+                    <div class="cartao-titulo">
+                        <span class="titulo-com-icone"><svg th:replace="~{fragmentos/comum :: i('user-round-x')}"></svg> Ausentes hoje</span>
+                        <a class="complemento" th:href="@{/calendario/pagina}">calendário</a>
+                    </div>
+                    <div class="vazio" th:if="${#lists.isEmpty(p.ausentesHoje)}">
+                        <svg th:replace="~{fragmentos/comum :: i('users')}"></svg>
+                        Todo mundo trabalhando hoje.
+                    </div>
+                    <ul class="lista-simples" th:unless="${#lists.isEmpty(p.ausentesHoje)}">
+                        <li th:each="o : ${p.ausentesHoje}">
+                            <a class="pessoa-celula" th:href="@{/pessoas/pagina/{id}(id=${o.pessoa.id})}">
+                                <span class="avatar pequeno" th:classappend="${o.pessoa.corAvatar}" th:text="${o.pessoa.iniciais}">AB</span>
+                                <span class="nome" th:text="${o.pessoa.nome}">Nome</span>
+                            </a>
+                            <span class="lado">
+                                <span class="marcador-tipo" th:classappend="'tipo-' + ${#strings.toLowerCase(o.tipo.name())}"></span>
+                                <span th:text="${o.tipo.descricao} + ' até ' + ${#temporals.format(o.dataFim, 'dd/MM')}">Tipo</span>
+                            </span>
+                        </li>
+                    </ul>
+                </section>
+                <section class="cartao">
+                    <div class="cartao-titulo">
+                        <span class="titulo-com-icone"><svg th:replace="~{fragmentos/comum :: i('calendar-days')}"></svg> Próximos 30 dias</span>
+                        <span class="complemento" th:text="${#lists.size(p.proximasOcorrencias)} + ' ocorrência(s)'">0</span>
+                    </div>
+                    <div class="vazio" th:if="${#lists.isEmpty(p.proximasOcorrencias)}">
+                        <svg th:replace="~{fragmentos/comum :: i('calendar-days')}"></svg>
+                        Nada programado para os próximos 30 dias.
+                    </div>
+                    <ul class="lista-simples" th:unless="${#lists.isEmpty(p.proximasOcorrencias)}">
+                        <li th:each="o : ${p.proximasOcorrencias}">
+                            <a th:if="${o.pessoa != null}" class="pessoa-celula" th:href="@{/pessoas/pagina/{id}(id=${o.pessoa.id})}">
+                                <span class="avatar pequeno" th:classappend="${o.pessoa.corAvatar}" th:text="${o.pessoa.iniciais}">AB</span>
+                                <span class="nome" th:text="${o.pessoa.nome}">Nome</span>
+                            </a>
+                            <span th:if="${o.pessoa == null}" class="pessoa-celula">
+                                <span class="avatar pequeno"><svg th:replace="~{fragmentos/comum :: i('calendar-days')}"></svg></span>
+                                <span class="nome">Toda a equipe</span>
+                            </span>
+                            <span class="lado">
+                                <span class="marcador-tipo" th:classappend="'tipo-' + ${#strings.toLowerCase(o.tipo.name())}"></span>
+                                <span class="numerico" th:text="${o.tipo.descricao} + ' em ' + ${#temporals.format(o.dataInicio, 'dd/MM')}">Tipo</span>
+                            </span>
+                        </li>
+                    </ul>
+                </section>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

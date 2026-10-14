@@ -1,5 +1,6 @@
 package com.ibmec.kodie.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -19,39 +20,39 @@ public class Pessoa {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "O nome e obrigatorio")
+    @NotBlank(message = "O nome é obrigatório")
     @Size(min = 3, max = 120, message = "O nome deve ter entre 3 e 120 caracteres")
     @Column(nullable = false, length = 120)
     private String nome;
 
-    @NotBlank(message = "O CPF e obrigatorio")
-    @Pattern(regexp = "\\d{11}", message = "O CPF deve conter exatamente 11 digitos, sem pontos ou tracos")
+    @NotBlank(message = "O CPF é obrigatório")
+    @Pattern(regexp = "\\d{11}", message = "O CPF deve conter exatamente 11 dígitos, sem pontos ou traços")
     @Column(nullable = false, unique = true, length = 11)
     private String cpf;
 
-    @NotBlank(message = "O e-mail e obrigatorio")
-    @Email(message = "Informe um e-mail valido")
-    @Size(max = 120, message = "O e-mail deve ter no maximo 120 caracteres")
+    @NotBlank(message = "O e-mail é obrigatório")
+    @Email(message = "Informe um e-mail válido")
+    @Size(max = 120, message = "O e-mail deve ter no máximo 120 caracteres")
     @Column(nullable = false, length = 120)
     private String email;
 
-    @NotBlank(message = "O cargo e obrigatorio")
-    @Size(max = 80, message = "O cargo deve ter no maximo 80 caracteres")
+    @NotBlank(message = "O cargo é obrigatório")
+    @Size(max = 80, message = "O cargo deve ter no máximo 80 caracteres")
     @Column(nullable = false, length = 80)
     private String cargo;
 
-    @NotNull(message = "O tipo de vinculo e obrigatorio")
+    @NotNull(message = "O tipo de vínculo é obrigatório")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private TipoVinculo tipoVinculo;
 
-    @NotNull(message = "A situacao e obrigatoria")
+    @NotNull(message = "A situação é obrigatória")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private SituacaoVinculo situacao = SituacaoVinculo.ATIVO;
 
-    @NotNull(message = "A data de entrada e obrigatoria")
-    @PastOrPresent(message = "A data de entrada nao pode estar no futuro")
+    @NotNull(message = "A data de entrada é obrigatória")
+    @PastOrPresent(message = "A data de entrada não pode estar no futuro")
     @Column(nullable = false)
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate dataEntrada;
@@ -74,16 +75,17 @@ public class Pessoa {
         this.situacao = SituacaoVinculo.ATIVO;
     }
 
-    /** Iniciais do nome, usadas no circulo de identificacao das telas. */
+    /** Apoio de tela: fora do JSON da API. */
     @Transient
+    @JsonIgnore
     public String getIniciais() {
-        if (nome == null || nome.isBlank()) {
-            return "?";
-        }
-        String[] partes = nome.trim().split("\\s+");
-        String primeira = partes[0].substring(0, 1);
-        String segunda = partes.length > 1 ? partes[partes.length - 1].substring(0, 1) : "";
-        return (primeira + segunda).toUpperCase();
+        return Avatar.iniciais(nome);
+    }
+
+    @Transient
+    @JsonIgnore
+    public String getCorAvatar() {
+        return Avatar.cor(nome);
     }
 
     /** Usada pelo painel de ferias: so CLT acumula periodo aquisitivo (secao 2.4). */
