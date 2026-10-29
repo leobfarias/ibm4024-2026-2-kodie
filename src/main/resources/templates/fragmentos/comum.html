@@ -14,7 +14,7 @@
     <link rel="icon" type="image/svg+xml" th:href="@{/img/favicon.svg}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap">
     <link rel="stylesheet" th:href="@{/css/estilo.css}">
     <script th:src="@{/js/tema.js}" defer></script>
 </head>
@@ -25,12 +25,10 @@
 <svg th:fragment="i(nome)" class="icone" aria-hidden="true"><use th:href="@{'/img/icones.svg#i-' + ${nome}}"></use></svg>
 
 <aside class="lateral" th:fragment="lateral(ativo)">
-    <div class="marca">
-        <div class="marca-simbolo">K</div>
-        <div class="marca-texto">
-            <div class="nome">KODIE</div>
-            <div class="descricao">Gestão de pessoas</div>
-        </div>
+    <div class="marca marca-logo">
+        <img class="logo logo-claro" th:src="@{/img/logo-kodie.svg}" alt="KODIE" width="112" height="26">
+        <img class="logo logo-escuro" th:src="@{/img/logo-kodie-branco.svg}" alt="KODIE" width="112" height="26">
+        <div class="descricao">Gestão de pessoas</div>
     </div>
 
     <nav class="lateral-menu" aria-label="Navegação principal">

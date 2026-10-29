@@ -9,35 +9,43 @@
 :root {
     color-scheme: light;
 
-    --fundo: #f6f6fa;
+    /* Paleta da identidade visual KODIE (static/idv)
+       cinza #2D2D2D, laranja #F35D37, laranja queimado #CC4B32, marrom #842F1F.
+       Fundo em amarelo claro, como pede o manual. */
+    --kodie-cinza: #2d2d2d;
+    --kodie-laranja: #f35d37;
+    --kodie-queimado: #cc4b32;
+    --kodie-marrom: #842f1f;
+
+    --fundo: #fbf8f1;
     --superficie: #ffffff;
-    --superficie-suave: #fafafc;
-    --hover: #f2f2f8;
+    --superficie-suave: #fdfbf6;
+    --hover: #f7f2e8;
 
-    --borda: #e5e5ee;
-    --borda-suave: #eeeef4;
-    --borda-campo: #d8d8e3;
-    --linha-tabela: #f0f0f5;
+    --borda: #ebe5d9;
+    --borda-suave: #f1ece2;
+    --borda-campo: #e2dbcd;
+    --linha-tabela: #f3eee5;
 
-    --texto: #15151d;
-    --texto-medio: #4a4a5c;
-    --texto-fraco: #8a8a9c;
-    --texto-rotulo: #6b6b80;
+    --texto: var(--kodie-cinza);
+    --texto-medio: #57534c;
+    --texto-fraco: #8c867b;
+    --texto-rotulo: #7d776c;
 
-    --destaque: #4f46e5;
-    --destaque-escuro: #4338ca;
-    --destaque-suave: #eef0ff;
-    --destaque-borda: #dadcfd;
+    --destaque: var(--kodie-queimado);
+    --destaque-escuro: #a93e29;
+    --destaque-suave: #fdf1ec;
+    --destaque-borda: #f6d9cd;
     --destaque-texto: #ffffff;
 
     --verde: #15803d;       --verde-fundo: #ecfdf3;    --verde-borda: #c6eed4;    --verde-forte: #16a34a;
     --ambar: #a15c07;       --ambar-fundo: #fff7e8;    --ambar-borda: #f8dfae;    --ambar-forte: #e0a020;
     --vermelho: #b91c1c;    --vermelho-fundo: #fef1f1; --vermelho-borda: #f6cccc; --vermelho-forte: #dc2626;
-    --neutro: #55556a;      --neutro-fundo: #f3f3f7;   --neutro-borda: #e3e3ea;   --neutro-forte: #a6a6b6;
+    --neutro: #57534c;      --neutro-fundo: #f6f2ea;   --neutro-borda: #ebe5d9;   --neutro-forte: #a6a6b6;
 
     --sombra-1: 0 1px 2px rgba(20, 20, 40, 0.04), 0 1px 3px rgba(20, 20, 40, 0.05);
     --sombra-2: 0 2px 4px rgba(20, 20, 40, 0.04), 0 8px 24px rgba(20, 20, 40, 0.07);
-    --anel-foco: 0 0 0 3px rgba(79, 70, 229, 0.18);
+    --anel-foco: 0 0 0 3px rgba(204, 75, 50, 0.18);
 
     --raio: 12px;
     --raio-medio: 10px;
@@ -59,14 +67,14 @@
         --fundo: #0d0e14;  --superficie: #15161e;  --superficie-suave: #1a1b24;  --hover: #21222d;
         --borda: #282a37;  --borda-suave: #222330; --borda-campo: #343646;      --linha-tabela: #20212c;
         --texto: #ececf3;  --texto-medio: #b3b4c6; --texto-fraco: #7e8096;      --texto-rotulo: #9293a8;
-        --destaque: #818cf8; --destaque-escuro: #6d78f3; --destaque-suave: #1e2042; --destaque-borda: #30347a; --destaque-texto: #0d0e14;
+        --destaque: #f35d37; --destaque-escuro: #e04a25; --destaque-suave: #2a1712; --destaque-borda: #5c2a1d; --destaque-texto: #0d0e14;
         --verde: #4ade80;    --verde-fundo: #0f2619;    --verde-borda: #1b4129;    --verde-forte: #22c55e;
         --ambar: #fbbf24;    --ambar-fundo: #29200d;    --ambar-borda: #4a3712;    --ambar-forte: #f59e0b;
         --vermelho: #f87171; --vermelho-fundo: #2b1416; --vermelho-borda: #4c2226; --vermelho-forte: #ef4444;
         --neutro: #b3b4c6;   --neutro-fundo: #21222d;   --neutro-borda: #2e3040;   --neutro-forte: #5c5e72;
         --sombra-1: 0 1px 2px rgba(0, 0, 0, 0.3);
         --sombra-2: 0 8px 24px rgba(0, 0, 0, 0.35);
-        --anel-foco: 0 0 0 3px rgba(129, 140, 248, 0.25);
+        --anel-foco: 0 0 0 3px rgba(243, 93, 55, 0.25);
         --tipo-ferias: #a5b4fc;   --tipo-ferias-fundo: #1e2042;
         --tipo-folga: #4ade80;    --tipo-folga-fundo: #0f2619;
         --tipo-licenca: #fbbf24;  --tipo-licenca-fundo: #29200d;
@@ -80,14 +88,14 @@
     --fundo: #0d0e14;  --superficie: #15161e;  --superficie-suave: #1a1b24;  --hover: #21222d;
     --borda: #282a37;  --borda-suave: #222330; --borda-campo: #343646;      --linha-tabela: #20212c;
     --texto: #ececf3;  --texto-medio: #b3b4c6; --texto-fraco: #7e8096;      --texto-rotulo: #9293a8;
-    --destaque: #818cf8; --destaque-escuro: #6d78f3; --destaque-suave: #1e2042; --destaque-borda: #30347a; --destaque-texto: #0d0e14;
+    --destaque: #f35d37; --destaque-escuro: #e04a25; --destaque-suave: #2a1712; --destaque-borda: #5c2a1d; --destaque-texto: #0d0e14;
     --verde: #4ade80;    --verde-fundo: #0f2619;    --verde-borda: #1b4129;    --verde-forte: #22c55e;
     --ambar: #fbbf24;    --ambar-fundo: #29200d;    --ambar-borda: #4a3712;    --ambar-forte: #f59e0b;
     --vermelho: #f87171; --vermelho-fundo: #2b1416; --vermelho-borda: #4c2226; --vermelho-forte: #ef4444;
     --neutro: #b3b4c6;   --neutro-fundo: #21222d;   --neutro-borda: #2e3040;   --neutro-forte: #5c5e72;
     --sombra-1: 0 1px 2px rgba(0, 0, 0, 0.3);
     --sombra-2: 0 8px 24px rgba(0, 0, 0, 0.35);
-    --anel-foco: 0 0 0 3px rgba(129, 140, 248, 0.25);
+    --anel-foco: 0 0 0 3px rgba(243, 93, 55, 0.25);
     --tipo-ferias: #a5b4fc;   --tipo-ferias-fundo: #1e2042;
     --tipo-folga: #4ade80;    --tipo-folga-fundo: #0f2619;
     --tipo-licenca: #fbbf24;  --tipo-licenca-fundo: #29200d;
@@ -107,10 +115,9 @@ body {
     margin: 0;
     background: var(--fundo);
     color: var(--texto);
-    font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Sora', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-size: 14px;
     line-height: 1.5;
-    font-feature-settings: 'cv11', 'ss01';
     -webkit-font-smoothing: antialiased;
 }
 
@@ -153,17 +160,39 @@ select, input, textarea, button { font-family: inherit; font-size: inherit; colo
     height: 100vh;
 }
 
+/* As tres barras do "E" da logo viram um filete no topo da lateral */
+.lateral::before {
+    content: "";
+    display: block;
+    height: 6px;
+    flex: none;
+    background: linear-gradient(var(--kodie-marrom) 0 2px, var(--kodie-queimado) 2px 4px, var(--kodie-laranja) 4px 6px);
+}
+
 .marca { display: flex; align-items: center; gap: 11px; padding: 20px 20px 18px; }
+
+/* Logo da lateral: letras cinza no tema claro, brancas no escuro */
+.marca-logo { flex-direction: column; align-items: flex-start; gap: 8px; }
+.marca-logo .logo { display: block; width: 112px; height: auto; }
+.marca-logo .descricao { font-size: 12px; color: var(--texto-fraco); }
+
+.logo-escuro { display: none !important; }
+:root[data-tema="escuro"] .logo-claro { display: none !important; }
+:root[data-tema="escuro"] .logo-escuro { display: block !important; }
+@media (prefers-color-scheme: dark) {
+    :root:not([data-tema="claro"]) .logo-claro { display: none !important; }
+    :root:not([data-tema="claro"]) .logo-escuro { display: block !important; }
+}
 
 .marca-simbolo {
     width: 34px; height: 34px;
     flex: none;
     border-radius: 10px;
-    background: linear-gradient(135deg, var(--destaque) 0%, #7c3aed 100%);
+    background: linear-gradient(135deg, var(--kodie-laranja) 0%, var(--kodie-marrom) 100%);
     color: #fff;
     display: flex; align-items: center; justify-content: center;
     font-weight: 700; font-size: 16px;
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28);
+    box-shadow: 0 4px 12px rgba(204, 75, 50, 0.28);
 }
 
 .marca-texto .nome { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; }
@@ -849,8 +878,8 @@ a.evento:hover { filter: brightness(0.97); color: var(--cor-tipo); }
     color: #fff;
     background:
         radial-gradient(1200px 600px at -10% -10%, rgba(255, 255, 255, 0.16), transparent 60%),
-        radial-gradient(800px 500px at 110% 110%, rgba(124, 58, 237, 0.55), transparent 60%),
-        linear-gradient(140deg, #4338ca 0%, #4f46e5 45%, #6d28d9 100%);
+        radial-gradient(800px 500px at 110% 110%, rgba(243, 93, 55, 0.55), transparent 60%),
+        linear-gradient(140deg, var(--kodie-marrom) 0%, var(--kodie-queimado) 55%, var(--kodie-laranja) 100%);
 }
 
 .painel-marca .marca-simbolo { background: rgba(255, 255, 255, 0.16); box-shadow: none; border: 1px solid rgba(255, 255, 255, 0.25); }
