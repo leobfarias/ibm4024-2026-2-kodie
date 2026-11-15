@@ -3,6 +3,7 @@ package com.ibmec.kodie.controller;
 import com.ibmec.kodie.model.*;
 import com.ibmec.kodie.service.FeriasService;
 import com.ibmec.kodie.service.PessoaService;
+import com.ibmec.kodie.service.RegraDeNegocioException;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -70,8 +71,9 @@ public class PessoaWebController {
 
         try {
             pessoaService.criar(novaPessoa);
-        } catch (IllegalArgumentException e) {
-            resultado.rejectValue("cpf", "regraDeNegocio", e.getMessage());
+        } catch (RegraDeNegocioException e) {
+            // A excecao informa o campo: a mensagem aparece ao lado dele.
+            resultado.rejectValue(e.getCampo(), "regraDeNegocio", e.getMessage());
             return recarregarLista(model);
         }
 
@@ -102,6 +104,48 @@ public class PessoaWebController {
         model.addAttribute("ocorrencias", pessoaService.listarOcorrencias(id));
         model.addAttribute("ferias", feriasService.situacaoDe(pessoa.get()));
         return "ficha";
+    }
+
+    // ------------------------------------------------------------------
+    // Edicao do cadastro (so administrador: ver SegurancaConfig)
+    // ------------------------------------------------------------------
+
+    @GetMapping("/{id}/editar")
+    public String formularioDeEdicao(@PathVariable Long id, Model model, RedirectAttributes atributos) {
+        Optional<Pessoa> pessoa = pessoaService.buscarPorId(id);
+        if (pessoa.isEmpty()) {
+            atributos.addFlashAttribute("erro", "Pessoa não encontrada: " + id);
+            return "redirect:/pessoas/pagina";
+        }
+
+        model.addAttribute("pessoaId", id);
+        model.addAttribute("pessoaEditada", pessoa.get());
+        return "pessoa-editar";
+    }
+
+    @PostMapping("/{id}/editar")
+    public String salvarEdicao(@PathVariable Long id,
+                               @Valid @ModelAttribute("pessoaEditada") Pessoa dados,
+                               BindingResult resultado,
+                               Model model,
+                               RedirectAttributes atributos) {
+
+        // O id vem do endereco, nao do formulario: e ele que diz quem esta sendo editado.
+        model.addAttribute("pessoaId", id);
+
+        if (resultado.hasErrors()) {
+            return "pessoa-editar";
+        }
+
+        try {
+            pessoaService.atualizar(id, dados);
+        } catch (RegraDeNegocioException e) {
+            resultado.rejectValue(e.getCampo(), "regraDeNegocio", e.getMessage());
+            return "pessoa-editar";
+        }
+
+        atributos.addFlashAttribute("mensagem", "Cadastro atualizado");
+        return "redirect:/pessoas/pagina/" + id;
     }
 
     /** Repoe o que o GET da lista colocaria, para renderizar a view com os erros. */

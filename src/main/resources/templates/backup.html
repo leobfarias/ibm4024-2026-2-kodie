@@ -66,7 +66,7 @@
                                 </a>
                                 <a class="botao pequeno" th:href="@{/backup/pagina/restaurar(arquivo=${b.nome})}">Restaurar</a>
                                 <form th:action="@{/backup/pagina/excluir}" method="post"
-                                      onsubmit="return confirm('Excluir este backup do servidor?')">
+                                      data-confirmar="Excluir este backup do servidor?">
                                     <input type="hidden" name="arquivo" th:value="${b.nome}">
                                     <button type="submit" class="botao texto" title="Excluir">
                                         <svg th:replace="~{fragmentos/comum :: i('trash-2')}"></svg>

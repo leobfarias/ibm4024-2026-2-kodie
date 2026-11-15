@@ -36,6 +36,11 @@
                 <svg th:replace="~{fragmentos/comum :: i('triangle-alert')}"></svg>
                 Login ou senha inválidos, ou usuário desativado.
             </p>
+            <p th:if="${param.bloqueado}" class="aviso ruim">
+                <svg th:replace="~{fragmentos/comum :: i('lock')}"></svg>
+                Muitas senhas erradas seguidas. Por segurança, este login fica bloqueado
+                por 15 minutos. Depois disso, tente de novo.
+            </p>
             <p th:if="${param.saiu}" class="aviso ok">
                 <svg th:replace="~{fragmentos/comum :: i('circle-check')}"></svg>
                 Você saiu do sistema.

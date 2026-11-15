@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -82,24 +83,43 @@ public class PessoaService {
      * duas pessoas com o mesmo CPF (secao 2.1 do documento de decisoes).
      */
     public Pessoa criar(Pessoa pessoa) {
+        // Cadastro novo nunca traz id: quem o define e o banco. Sem esta linha,
+        // um JSON com "id": 1 faria o save() sobrescrever a pessoa 1.
+        pessoa.setId(null);
+
         if (repository.existsByCpf(pessoa.getCpf())) {
-            throw new IllegalArgumentException(
+            throw new RegraDeNegocioException("cpf",
                     "Já existe uma pessoa cadastrada com o CPF " + pessoa.getCpf());
         }
         aplicarRegrasDeDesligamento(pessoa);
         return repository.save(pessoa);
     }
 
+    @Transactional
     public Pessoa atualizar(Long id, Pessoa dados) {
         Pessoa existente = repository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Pessoa não encontrada: " + id));
 
         if (repository.existsByCpfAndIdNot(dados.getCpf(), id)) {
-            throw new IllegalArgumentException(
+            throw new RegraDeNegocioException("cpf",
                     "Já existe outra pessoa cadastrada com o CPF " + dados.getCpf());
         }
 
         aplicarRegrasDeDesligamento(dados);
+
+        // Os periodos aquisitivos sao montados a partir da data de entrada, da
+        // data de saida e do vinculo. Se um deles mudou, os periodos gravados
+        // ficaram errados - e o FeriasService so acrescenta periodos, nunca
+        // corrige os que ja existem. Entao apagamos: ele os recria certos na
+        // proxima consulta. Nenhuma informacao se perde, porque o saldo vem
+        // das ocorrencias de ferias, e nao dos periodos.
+        boolean mudouABaseDasFerias =
+                !Objects.equals(existente.getDataEntrada(), dados.getDataEntrada())
+                || !Objects.equals(existente.getDataSaida(), dados.getDataSaida())
+                || existente.getTipoVinculo() != dados.getTipoVinculo();
+        if (mudouABaseDasFerias) {
+            periodoRepository.deleteByPessoaId(id);
+        }
 
         existente.setNome(dados.getNome());
         existente.setCpf(dados.getCpf());
@@ -137,14 +157,14 @@ public class PessoaService {
         boolean desligada = pessoa.getSituacao() == SituacaoVinculo.DESLIGADO;
 
         if (desligada && pessoa.getDataSaida() == null) {
-            throw new IllegalArgumentException("Informe a data de saída para uma pessoa desligada");
+            throw new RegraDeNegocioException("dataSaida", "Informe a data de saída para uma pessoa desligada");
         }
         if (!desligada && pessoa.getDataSaida() != null) {
-            throw new IllegalArgumentException("Só é permitido informar data de saída quando a situação for Desligado");
+            throw new RegraDeNegocioException("dataSaida", "Só é permitido informar data de saída quando a situação for Desligado");
         }
         if (pessoa.getDataSaida() != null && pessoa.getDataEntrada() != null
                 && pessoa.getDataSaida().isBefore(pessoa.getDataEntrada())) {
-            throw new IllegalArgumentException("A data de saída não pode ser anterior à data de entrada");
+            throw new RegraDeNegocioException("dataSaida", "A data de saída não pode ser anterior à data de entrada");
         }
     }
 }

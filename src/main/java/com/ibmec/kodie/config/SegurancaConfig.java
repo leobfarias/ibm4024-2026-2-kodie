@@ -1,25 +1,38 @@
 package com.ibmec.kodie.config;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.authentication.LockedException;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.PortMapper;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.ExceptionMappingAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.csrf.CsrfException;
+import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+
+import java.util.Map;
 
 /**
  * Regras de acesso do sistema.
@@ -28,12 +41,58 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
  *   - API REST (curl, Postman): usuario e senha a cada requisicao (HTTP Basic).
  *
  * Os dois perfis consultam tudo. Apenas o administrador escreve: qualquer
- * POST, PUT ou DELETE, alem das telas de cadastro de usuarios e de registro
- * de ocorrencia, exige o perfil ADMIN. A unica escrita liberada ao perfil de
- * visualizacao e a troca da propria senha.
+ * POST, PUT ou DELETE, alem das telas de cadastro de usuarios, de registro
+ * de ocorrencia e de edicao de pessoa, exige o perfil ADMIN. A unica escrita
+ * liberada ao perfil de visualizacao e a troca da propria senha.
+ *
+ * Alem das regras de acesso, esta classe liga as protecoes do navegador
+ * (cabecalhos de seguranca, ver cabecalhosDeSeguranca), o HTTPS obrigatorio
+ * em producao e o bloqueio por senhas erradas seguidas (TentativasDeLogin).
  */
 @Configuration
 public class SegurancaConfig {
+
+    /**
+     * Politica de seguranca de conteudo (CSP): de onde o navegador aceita
+     * carregar cada tipo de recurso nas paginas do sistema.
+     *
+     * A linha mais importante e script-src 'self': so rodam scripts vindos
+     * de arquivos do proprio sistema. Se algum dia um texto cadastrado
+     * conseguir injetar um <script> na pagina (XSS), o navegador se recusa a
+     * executa-lo. Por isso nenhum template tem JavaScript embutido: os
+     * comportamentos ficam em static/js (tema.js e acoes.js).
+     *
+     * Os estilos aceitam 'unsafe-inline' porque varias telas usam o
+     * atributo style="..." para ajustes pontuais de layout; CSS injetado nao
+     * executa codigo. A fonte Sora vem do Google Fonts, unica origem externa.
+     */
+    static final String POLITICA_DE_CONTEUDO = String.join("; ",
+            "default-src 'self'",
+            "script-src 'self'",
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+            "font-src 'self' https://fonts.gstatic.com",
+            "img-src 'self'",
+            "object-src 'none'",
+            "base-uri 'self'",
+            "form-action 'self'",
+            "frame-ancestors 'self'");
+
+    /** Recursos do navegador que o sistema nunca usa: nenhuma pagina pode pedi-los. */
+    static final String POLITICA_DE_PERMISSOES =
+            "camera=(), microphone=(), geolocation=(), payment=(), usb=()";
+
+    /** Redirecionamento para HTTPS: o destino e sempre a porta padrao (443, que fica fora da URL). */
+    private static final PortMapper HTTPS_NA_PORTA_PADRAO = new PortMapper() {
+        @Override
+        public Integer lookupHttpsPort(Integer portaHttp) {
+            return 443;
+        }
+
+        @Override
+        public Integer lookupHttpPort(Integer portaHttps) {
+            return 80;
+        }
+    };
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -52,8 +111,26 @@ public class SegurancaConfig {
         return new HttpSessionEventPublisher();
     }
 
+    /**
+     * @param exigirHttps ligado em producao (kodie.seguranca.exigir-https). O
+     *                    App Service encerra o TLS e avisa a aplicacao pelo
+     *                    cabecalho X-Forwarded-Proto se o pedido chegou por
+     *                    http ou https; quem chega por http e redirecionado.
+     */
     @Bean
-    public SecurityFilterChain filtroDeSeguranca(HttpSecurity http, SessionRegistry registroDeSessoes) throws Exception {
+    public SecurityFilterChain filtroDeSeguranca(HttpSecurity http,
+                                                 SessionRegistry registroDeSessoes,
+                                                 @Value("${kodie.seguranca.exigir-https}") boolean exigirHttps) throws Exception {
+        if (exigirHttps) {
+            http.redirectToHttps(Customizer.withDefaults())
+                // O endereco publico do App Service usa sempre a porta padrao do
+                // HTTPS (443), qualquer que seja a porta interna da aplicacao. Sem
+                // isto, um pedido que chega direto na porta interna (a sonda de
+                // inicializacao da plataforma, por exemplo) dava erro 500: o Spring
+                // so conhece de fabrica os pares 80->443 e 8080->8443.
+                .portMapper(portas -> portas.portMapper(HTTPS_NA_PORTA_PADRAO));
+        }
+
         http
             .authorizeHttpRequests(acesso -> acesso
                     .requestMatchers("/login", "/acesso-negado", "/error", "/css/**", "/js/**", "/img/**").permitAll()
@@ -65,13 +142,14 @@ public class SegurancaConfig {
                     .requestMatchers("/backup", "/backup/**").hasRole("ADMIN")
                     .requestMatchers("/conta/**").authenticated()
                     .requestMatchers(HttpMethod.GET, "/ocorrencias/pagina/nova").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.GET, "/pessoas/pagina/*/editar").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.GET, "/**").authenticated()
                     .anyRequest().hasRole("ADMIN"))
 
             .formLogin(login -> login
                     .loginPage("/login")
                     .defaultSuccessUrl("/inicio")
-                    .failureUrl("/login?erro")
+                    .failureHandler(falhaNoLogin())
                     .permitAll())
 
             .logout(saida -> saida
@@ -99,10 +177,47 @@ public class SegurancaConfig {
                     .ignoringRequestMatchers(semRiscoDeCsrf())
                     .ignoringRequestMatchers("/h2-console/**"))
 
-            // O console do H2 e exibido dentro de um frame da propria aplicacao.
-            .headers(cabecalhos -> cabecalhos.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
+            .headers(SegurancaConfig::cabecalhosDeSeguranca);
 
         return http.build();
+    }
+
+    /**
+     * Cabecalhos que instruem o navegador a se proteger. O Spring Security
+     * ja envia, por conta propria:
+     *   - X-Content-Type-Options: nosniff (o navegador nao "adivinha" o tipo de um arquivo);
+     *   - Cache-Control: no-store (paginas com dados pessoais nao ficam no cache);
+     *   - Strict-Transport-Security (HSTS), quando o pedido chega por HTTPS:
+     *     por um ano, o navegador so volta ao sistema por HTTPS.
+     * Aqui entram os demais.
+     */
+    private static void cabecalhosDeSeguranca(HeadersConfigurer<HttpSecurity> cabecalhos) {
+        cabecalhos
+                // Nenhum outro site pode exibir o sistema dentro de um frame (clickjacking).
+                // O console do H2 usa frames da propria aplicacao, por isso "sameOrigin".
+                .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+                // Ao seguir um link para fora, o outro site nao recebe o endereco
+                // da pagina de origem (que pode conter o id de uma pessoa).
+                .referrerPolicy(politica -> politica.policy(ReferrerPolicy.SAME_ORIGIN))
+                .permissionsPolicyHeader(politica -> politica.policy(POLITICA_DE_PERMISSOES))
+                // CSP em todas as paginas, menos no console do H2 (so existe em
+                // desenvolvimento), que depende de JavaScript embutido para funcionar.
+                .addHeaderWriter(new DelegatingRequestMatcherHeaderWriter(
+                        new NegatedRequestMatcher(PathPatternRequestMatcher.pathPattern("/h2-console/**")),
+                        new StaticHeadersWriter("Content-Security-Policy", POLITICA_DE_CONTEUDO)));
+    }
+
+    /**
+     * Login recusado: a tela explica o motivo quando o login esta bloqueado
+     * por senhas erradas seguidas. Nos demais casos (senha errada, login
+     * inexistente, usuario desativado) a mensagem e a mesma, de proposito:
+     * dizer "este login nao existe" ajudaria quem tenta adivinhar.
+     */
+    private static AuthenticationFailureHandler falhaNoLogin() {
+        ExceptionMappingAuthenticationFailureHandler falha = new ExceptionMappingAuthenticationFailureHandler();
+        falha.setDefaultFailureUrl("/login?erro");
+        falha.setExceptionMappings(Map.of(LockedException.class.getName(), "/login?bloqueado"));
+        return falha;
     }
 
     /**
@@ -195,9 +310,17 @@ public class SegurancaConfig {
      *
      * Sobram os formularios HTML, que continuam exigindo o token - o Thymeleaf
      * o inclui automaticamente em todo th:action.
+     *
+     * Antes de tudo: quando o proprio navegador informa que o pedido saiu de
+     * OUTRO site (Sec-Fetch-Site: cross-site), nenhuma dispensa vale. Nenhum
+     * uso legitimo do sistema faz isso, e a regra fecha o caso de um
+     * navegador que guardou a senha do HTTP Basic e a reenvia sozinho.
      */
     private static RequestMatcher semRiscoDeCsrf() {
         return requisicao -> {
+            if ("cross-site".equals(requisicao.getHeader("Sec-Fetch-Site"))) {
+                return false;
+            }
             if (requisicao.getHeader("Authorization") != null) {
                 return true;
             }

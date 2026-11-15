@@ -1,6 +1,7 @@
 package com.ibmec.kodie.controller;
 
 import com.ibmec.kodie.controller.form.SenhaForm;
+import com.ibmec.kodie.service.RegraDeNegocioException;
 import com.ibmec.kodie.service.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -53,9 +54,9 @@ public class ContaWebController {
 
         try {
             usuarioService.trocarPropriaSenha(principal.getName(), form.getSenhaAtual(), form.getNovaSenha());
-        } catch (IllegalArgumentException e) {
-            String campo = e.getMessage().contains("atual não confere") ? "senhaAtual" : "novaSenha";
-            resultado.rejectValue(campo, "regraDeNegocio", e.getMessage());
+        } catch (RegraDeNegocioException e) {
+            // O servico informa o campo: senha atual errada ou nova senha recusada.
+            resultado.rejectValue(e.getCampo(), "regraDeNegocio", e.getMessage());
             return prepararTela(model);
         }
 

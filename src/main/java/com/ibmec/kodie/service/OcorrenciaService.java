@@ -28,6 +28,8 @@ public class OcorrenciaService {
     }
 
     public Ocorrencia criar(Ocorrencia ocorrencia) {
+        // Ocorrencia nova nunca traz id: um id enviado faria o save() sobrescrever outra.
+        ocorrencia.setId(null);
         validarDatas(ocorrencia);
         resolverPessoa(ocorrencia);
         validarSobreposicao(ocorrencia, null);
