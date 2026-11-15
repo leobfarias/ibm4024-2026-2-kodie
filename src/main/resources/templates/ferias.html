@@ -58,12 +58,12 @@
                     <svg th:replace="~{fragmentos/comum :: i('search')}"></svg>
                     <input type="search" name="busca" th:value="${busca}" placeholder="Buscar pessoa" aria-label="Buscar">
                 </div>
-                <select name="vinculo" onchange="this.form.submit()" aria-label="Vínculo">
+                <select name="vinculo" data-enviar-ao-mudar aria-label="Vínculo">
                     <option value="">Vínculo: todos</option>
                     <option th:each="t : ${tiposVinculo}" th:value="${t}" th:text="${t.descricao}"
                             th:selected="${t == vinculoFiltro}"></option>
                 </select>
-                <select name="situacao" onchange="this.form.submit()" aria-label="Situação">
+                <select name="situacao" data-enviar-ao-mudar aria-label="Situação">
                     <option value="">Situação: todas</option>
                     <option th:each="s : ${situacoesFerias}" th:value="${s}" th:text="${s.descricao}"
                             th:selected="${s == situacaoFiltro}"></option>

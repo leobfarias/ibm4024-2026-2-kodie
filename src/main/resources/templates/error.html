@@ -33,7 +33,7 @@
         </th:block>
 
         <div class="acoes-linha">
-            <a class="botao" href="javascript:history.back()">
+            <a class="botao" th:href="@{/inicio}" data-voltar>
                 <svg th:replace="~{fragmentos/comum :: i('arrow-left')}"></svg> Voltar
             </a>
             <a class="botao primario" th:href="@{/inicio}">

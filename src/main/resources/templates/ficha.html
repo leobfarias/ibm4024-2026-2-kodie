@@ -37,6 +37,9 @@
             <div class="cartao">
                 <div class="cartao-titulo">
                     <span class="titulo-com-icone"><svg th:replace="~{fragmentos/comum :: i('users')}"></svg> Dados cadastrais e vínculo</span>
+                    <a th:if="${ehAdmin}" class="botao pequeno" th:href="@{/pessoas/pagina/{id}/editar(id=${pessoa.id})}">
+                        <svg th:replace="~{fragmentos/comum :: i('pencil')}"></svg> Editar
+                    </a>
                 </div>
                 <div class="cartao-corpo">
                     <dl class="dados">
@@ -72,6 +75,13 @@
                 </div>
 
                 <th:block th:if="${pessoa.possuiRegraDeFerias()}">
+                    <div class="cartao-corpo" th:if="${pessoa.situacao.name() == 'DESLIGADO'}">
+                        <p class="nota" style="margin:0">
+                            Pessoa desligada: não entra no painel de férias nem nos alertas de vencimento.
+                            Os períodos abaixo ficam como histórico.
+                        </p>
+                    </div>
+
                     <div class="vazio" th:if="${#lists.isEmpty(ferias.periodos)}">
                         <svg th:replace="~{fragmentos/comum :: i('clock')}"></svg>
                         Nenhum período aquisitivo completo ainda. O primeiro nasce ao completar doze meses de vínculo.
@@ -105,7 +115,8 @@
             <div class="cartao">
                 <div class="cartao-titulo">
                     <span class="titulo-com-icone"><svg th:replace="~{fragmentos/comum :: i('calendar-days')}"></svg> Ocorrências</span>
-                    <a th:if="${ehAdmin}" class="botao pequeno" th:href="@{/ocorrencias/pagina/nova(pessoaId=${pessoa.id})}">
+                    <!-- O OcorrenciaService recusa ocorrência para pessoa desligada: o botão só levaria a um erro -->
+                    <a th:if="${ehAdmin and pessoa.situacao.name() != 'DESLIGADO'}" class="botao pequeno" th:href="@{/ocorrencias/pagina/nova(pessoaId=${pessoa.id})}">
                         <svg th:replace="~{fragmentos/comum :: i('plus')}"></svg> Registrar ocorrência
                     </a>
                 </div>
@@ -140,7 +151,7 @@
                             <td th:text="${o.observacao != null and !o.observacao.isBlank()} ? ${o.observacao} : '—'">—</td>
                             <td th:if="${ehAdmin}" class="direita">
                                 <form th:action="@{/ocorrencias/pagina/{id}/excluir(id=${o.id})}" method="post"
-                                      onsubmit="return confirm('Excluir esta ocorrência?')">
+                                      data-confirmar="Excluir esta ocorrência?">
                                     <input type="hidden" name="pessoaId" th:value="${pessoa.id}">
                                     <button type="submit" class="botao texto" title="Excluir">
                                         <svg th:replace="~{fragmentos/comum :: i('trash-2')}"></svg>

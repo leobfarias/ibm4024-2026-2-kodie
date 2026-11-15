@@ -5,6 +5,7 @@ import com.ibmec.kodie.controller.form.NovoUsuarioForm;
 import com.ibmec.kodie.controller.form.SenhaForm;
 import com.ibmec.kodie.model.PerfilAcesso;
 import com.ibmec.kodie.model.Usuario;
+import com.ibmec.kodie.service.RegraDeNegocioException;
 import com.ibmec.kodie.service.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -60,8 +61,9 @@ public class UsuarioWebController {
 
         try {
             usuarioService.criar(form.getLogin(), form.getNome(), form.getSenha(), form.getPerfil());
-        } catch (IllegalArgumentException e) {
-            resultado.rejectValue("login", "regraDeNegocio", e.getMessage());
+        } catch (RegraDeNegocioException e) {
+            // Login repetido aparece no login; senha recusada, na senha.
+            resultado.rejectValue(e.getCampo(), "regraDeNegocio", e.getMessage());
             return recarregar(model, form);
         }
 
@@ -134,7 +136,12 @@ public class UsuarioWebController {
             return prepararTelaDeSenha(model, usuario.get());
         }
 
-        usuarioService.redefinirSenha(id, form.getNovaSenha());
+        try {
+            usuarioService.redefinirSenha(id, form.getNovaSenha());
+        } catch (RegraDeNegocioException e) {
+            resultado.rejectValue(e.getCampo(), "regraDeNegocio", e.getMessage());
+            return prepararTelaDeSenha(model, usuario.get());
+        }
         sessoes.encerrar(usuario.get().getLogin());
         atributos.addFlashAttribute("mensagem", "Senha de " + usuario.get().getLogin() + " redefinida");
         return "redirect:/usuarios/pagina";

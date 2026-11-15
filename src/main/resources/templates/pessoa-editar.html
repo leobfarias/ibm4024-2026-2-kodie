@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/comum :: cabecalho('Editar cadastro')}"></head>
+<body>
+<div class="aplicacao">
+
+    <aside th:replace="~{fragmentos/comum :: lateral('pessoas')}"></aside>
+
+    <main class="conteudo">
+        <div class="conteudo-limite" style="max-width:720px">
+
+            <div th:replace="~{fragmentos/comum :: avisos}"></div>
+
+            <a class="voltar" th:href="@{/pessoas/pagina/{id}(id=${pessoaId})}">
+                <svg th:replace="~{fragmentos/comum :: i('arrow-left')}"></svg> Ficha
+            </a>
+
+            <div class="cabecalho">
+                <div>
+                    <h1>Editar cadastro</h1>
+                    <p class="resumo">Para registrar um desligamento, mude a situação para Desligado e informe a data de saída.</p>
+                </div>
+            </div>
+
+            <div class="cartao">
+                <div class="cartao-corpo">
+                    <form th:action="@{/pessoas/pagina/{id}/editar(id=${pessoaId})}" th:object="${pessoaEditada}" method="post" class="formulario">
+
+                        <div class="campos">
+                            <div>
+                                <label for="nome">Nome completo</label>
+                                <input type="text" id="nome" th:field="*{nome}" placeholder="Nome e sobrenome"
+                                       th:classappend="${#fields.hasErrors('nome')} ? 'invalido'">
+                                <span class="erro" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></span>
+                            </div>
+                            <div>
+                                <label for="cpf">CPF</label>
+                                <input type="text" id="cpf" th:field="*{cpf}" maxlength="11" placeholder="Somente números" inputmode="numeric"
+                                       th:classappend="${#fields.hasErrors('cpf')} ? 'invalido'">
+                                <span class="erro" th:if="${#fields.hasErrors('cpf')}" th:errors="*{cpf}"></span>
+                            </div>
+                            <div>
+                                <label for="email">E-mail</label>
+                                <input type="email" id="email" th:field="*{email}" placeholder="nome@exemplo.com"
+                                       th:classappend="${#fields.hasErrors('email')} ? 'invalido'">
+                                <span class="erro" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+                            </div>
+                            <div>
+                                <label for="cargo">Cargo</label>
+                                <input type="text" id="cargo" th:field="*{cargo}" placeholder="Função exercida"
+                                       th:classappend="${#fields.hasErrors('cargo')} ? 'invalido'">
+                                <span class="erro" th:if="${#fields.hasErrors('cargo')}" th:errors="*{cargo}"></span>
+                            </div>
+                            <div>
+                                <label for="tipoVinculo">Tipo de vínculo</label>
+                                <select id="tipoVinculo" th:field="*{tipoVinculo}"
+                                        th:classappend="${#fields.hasErrors('tipoVinculo')} ? 'invalido'">
+                                    <option value="">Selecione</option>
+                                    <option th:each="t : ${tiposVinculo}" th:value="${t}" th:text="${t.descricao}"></option>
+                                </select>
+                                <span class="erro" th:if="${#fields.hasErrors('tipoVinculo')}" th:errors="*{tipoVinculo}"></span>
+                            </div>
+                            <div>
+                                <label for="situacao">Situação</label>
+                                <select id="situacao" th:field="*{situacao}"
+                                        th:classappend="${#fields.hasErrors('situacao')} ? 'invalido'">
+                                    <option th:each="s : ${situacoesVinculo}" th:value="${s}" th:text="${s.descricao}"></option>
+                                </select>
+                                <span class="erro" th:if="${#fields.hasErrors('situacao')}" th:errors="*{situacao}"></span>
+                            </div>
+                            <div>
+                                <label for="dataEntrada">Data de entrada</label>
+                                <input type="date" id="dataEntrada" th:field="*{dataEntrada}"
+                                       th:classappend="${#fields.hasErrors('dataEntrada')} ? 'invalido'">
+                                <span class="erro" th:if="${#fields.hasErrors('dataEntrada')}" th:errors="*{dataEntrada}"></span>
+                            </div>
+                            <div>
+                                <label for="dataSaida">Data de saída</label>
+                                <input type="date" id="dataSaida" th:field="*{dataSaida}"
+                                       th:classappend="${#fields.hasErrors('dataSaida')} ? 'invalido'">
+                                <span class="erro" th:if="${#fields.hasErrors('dataSaida')}" th:errors="*{dataSaida}"></span>
+                            </div>
+                        </div>
+
+                        <div class="formulario-acoes">
+                            <a class="botao" th:href="@{/pessoas/pagina/{id}(id=${pessoaId})}">Cancelar</a>
+                            <button type="submit" class="botao primario">
+                                <svg th:replace="~{fragmentos/comum :: i('circle-check')}"></svg> Salvar alterações
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="informativo">
+                <svg th:replace="~{fragmentos/comum :: i('info')}"></svg>
+                <div>
+                    Mudar a data de entrada, a data de saída ou o tipo de vínculo recalcula os períodos de
+                    férias desta pessoa. As férias já lançadas continuam valendo e são abatidas de novo.
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+</body>
+</html>

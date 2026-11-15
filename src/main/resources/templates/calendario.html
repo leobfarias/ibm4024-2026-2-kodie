@@ -30,7 +30,7 @@
             <form class="filtros" method="get" th:action="@{/calendario/pagina}">
                 <input type="hidden" name="ano" th:value="${c.mes.year}">
                 <input type="hidden" name="mes" th:value="${c.mes.monthValue}">
-                <select name="tipo" onchange="this.form.submit()" aria-label="Tipo de ocorrência">
+                <select name="tipo" data-enviar-ao-mudar aria-label="Tipo de ocorrência">
                     <option value="">Tipo: todos</option>
                     <option th:each="t : ${tiposOcorrencia}" th:value="${t}" th:text="${t.descricao}"
                             th:selected="${t == tipoFiltro}"></option>
@@ -82,7 +82,10 @@
                 <div style="overflow-x:auto" th:unless="${#lists.isEmpty(c.ocorrencias)}">
                     <table>
                         <thead>
-                        <tr><th>Pessoa</th><th>Tipo</th><th>Início</th><th>Fim</th><th class="direita">Dias</th><th>Situação</th></tr>
+                        <tr>
+                            <th>Pessoa</th><th>Tipo</th><th>Início</th><th>Fim</th><th class="direita">Dias</th>
+                            <th>Situação</th><th th:if="${ehAdmin}"></th>
+                        </tr>
                         </thead>
                         <tbody>
                         <tr th:each="o : ${c.ocorrencias}">
@@ -105,6 +108,22 @@
                             <td class="numerico direita" th:text="${o.totalDeDias}">0</td>
                             <td><span class="etiqueta" th:classappend="${o.situacao.name() == 'CONFIRMADA'} ? 'verde'"
                                       th:text="${o.situacao.descricao}">Situação</span></td>
+                            <!-- Única tela que lista ocorrências sem pessoa (feriados): sem este botão, elas não teriam como ser apagadas -->
+                            <td th:if="${ehAdmin}" class="direita">
+                                <form th:action="@{/ocorrencias/pagina/{id}/excluir(id=${o.id})}" method="post"
+                                      th:data-confirmar="${o.pessoa != null}
+                                          ? 'Excluir esta ocorrência? Ela sai do calendário e da ficha de ' + ${o.pessoa.nome} + '.'
+                                          : 'Excluir esta ocorrência do calendário?'">
+                                    <!-- Depois de excluir, volta para este mesmo mês, com o mesmo filtro -->
+                                    <input type="hidden" name="ano" th:value="${c.mes.year}">
+                                    <input type="hidden" name="mes" th:value="${c.mes.monthValue}">
+                                    <input type="hidden" name="tipo" th:if="${tipoFiltro != null}" th:value="${tipoFiltro}">
+                                    <button type="submit" class="botao texto" title="Excluir">
+                                        <svg th:replace="~{fragmentos/comum :: i('trash-2')}"></svg>
+                                        <span class="visualmente-oculto">Excluir</span>
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
                         </tbody>
                     </table>

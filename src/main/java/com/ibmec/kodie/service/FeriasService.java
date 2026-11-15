@@ -50,10 +50,19 @@ public class FeriasService {
         return diasDeAlerta;
     }
 
-    /** Painel de ferias: a situacao de todas as pessoas do cadastro. */
+    /**
+     * Painel de ferias: a situacao de quem ainda tem vinculo com a KODIE.
+     *
+     * Pessoas desligadas ficam de fora. Elas nao tiram mais ferias, entao um
+     * saldo que sobrou viraria um alerta de "vencido" que nunca se resolve -
+     * e, com o tempo, os desligados afogariam os alertas que importam. O
+     * painel alimenta a pagina inicial, os indicadores, a API e o CSV; a
+     * ficha de cada pessoa continua mostrando o historico completo.
+     */
     @Transactional
     public List<SituacaoDeFerias> montarPainel() {
         return pessoaRepository.findAll().stream()
+                .filter(pessoa -> pessoa.getSituacao() != SituacaoVinculo.DESLIGADO)
                 .map(this::situacaoDe)
                 .toList();
     }

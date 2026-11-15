@@ -1,6 +1,7 @@
 package com.ibmec.kodie.config;
 
 import com.ibmec.kodie.repository.UsuarioRepository;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -15,14 +16,28 @@ import org.springframework.stereotype.Service;
 public class UsuarioDetailsService implements UserDetailsService {
 
     private final UsuarioRepository repository;
+    private final TentativasDeLogin tentativas;
 
-    public UsuarioDetailsService(UsuarioRepository repository) {
+    public UsuarioDetailsService(UsuarioRepository repository, TentativasDeLogin tentativas) {
         this.repository = repository;
+        this.tentativas = tentativas;
     }
 
     @Override
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
         String normalizado = login == null ? "" : login.trim().toLowerCase();
+
+        if (tentativas.estaBloqueado(normalizado)) {
+            // Conta marcada como bloqueada: o Spring Security recusa a entrada
+            // ANTES de conferir a senha (LockedException), entao nem a senha
+            // certa passa. A mesma resposta vale para um login que nao existe,
+            // para nao revelar quais logins sao validos.
+            return User.withUsername(normalizado)
+                    .password("")
+                    .accountLocked(true)
+                    .build();
+        }
+
         return repository.findByLogin(normalizado)
                 .map(UsuarioAutenticado::new)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));

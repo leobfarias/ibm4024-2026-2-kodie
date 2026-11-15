@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,6 +15,9 @@ import java.util.Optional;
 public class UsuarioService {
 
     public static final int TAMANHO_MINIMO_SENHA = 8;
+
+    /** Limite do BCrypt: ele recusa senhas maiores que 72 bytes. */
+    public static final int TAMANHO_MAXIMO_SENHA_EM_BYTES = 72;
 
     private final UsuarioRepository repository;
     private final PasswordEncoder passwordEncoder;
@@ -47,9 +51,9 @@ public class UsuarioService {
         String loginNormalizado = login == null ? null : login.trim().toLowerCase();
 
         if (repository.existsByLogin(loginNormalizado)) {
-            throw new IllegalArgumentException("Já existe um usuário com o login " + loginNormalizado);
+            throw new RegraDeNegocioException("login", "Já existe um usuário com o login " + loginNormalizado);
         }
-        validarSenha(senha);
+        validarSenha(senha, "senha");
 
         Usuario usuario = new Usuario(loginNormalizado, nome.trim(), passwordEncoder.encode(senha), perfil);
         return repository.save(usuario);
@@ -93,7 +97,7 @@ public class UsuarioService {
     @Transactional
     public void redefinirSenha(Long id, String novaSenha) {
         Usuario usuario = encontrar(id);
-        validarSenha(novaSenha);
+        validarSenha(novaSenha, "novaSenha");
         usuario.setSenhaHash(passwordEncoder.encode(novaSenha));
         repository.save(usuario);
     }
@@ -105,12 +109,12 @@ public class UsuarioService {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado: " + login));
 
         if (!passwordEncoder.matches(senhaAtual, usuario.getSenhaHash())) {
-            throw new IllegalArgumentException("A senha atual não confere");
+            throw new RegraDeNegocioException("senhaAtual", "A senha atual não confere");
         }
         if (passwordEncoder.matches(novaSenha, usuario.getSenhaHash())) {
-            throw new IllegalArgumentException("A nova senha deve ser diferente da atual");
+            throw new RegraDeNegocioException("novaSenha", "A nova senha deve ser diferente da atual");
         }
-        validarSenha(novaSenha);
+        validarSenha(novaSenha, "novaSenha");
 
         usuario.setSenhaHash(passwordEncoder.encode(novaSenha));
         repository.save(usuario);
@@ -127,10 +131,22 @@ public class UsuarioService {
         }
     }
 
-    private void validarSenha(String senha) {
+    /**
+     * @param campo nome do campo no formulario que esta sendo validado: "senha"
+     *              no cadastro de usuario, "novaSenha" nas telas de troca. A
+     *              tela usa o nome para mostrar o erro ao lado do campo certo.
+     */
+    private void validarSenha(String senha, String campo) {
         if (senha == null || senha.length() < TAMANHO_MINIMO_SENHA) {
-            throw new IllegalArgumentException(
+            throw new RegraDeNegocioException(campo,
                     "A senha deve ter pelo menos " + TAMANHO_MINIMO_SENHA + " caracteres");
+        }
+        // O BCrypt conta bytes, nao letras: cada letra acentuada ocupa 2 bytes.
+        // Sem esta verificacao, uma senha longa com acentos passaria pelo
+        // formulario e derrubaria a gravacao com um erro em ingles.
+        if (senha.getBytes(StandardCharsets.UTF_8).length > TAMANHO_MAXIMO_SENHA_EM_BYTES) {
+            throw new RegraDeNegocioException(campo,
+                    "Senha longa demais: use até 72 caracteres, contando cada letra acentuada como duas");
         }
     }
 

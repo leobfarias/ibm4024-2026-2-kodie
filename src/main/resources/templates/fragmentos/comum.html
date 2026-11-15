@@ -9,14 +9,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="${titulo} + ' · KODIE'">KODIE</title>
-    <!-- Aplica o tema salvo antes de desenhar a página, para não piscar no tema errado -->
-    <script>try{var t=localStorage.getItem('kodie-tema');if(t)document.documentElement.setAttribute('data-tema',t);}catch(e){}</script>
+    <!-- Sem "defer": aplica o tema salvo antes de desenhar a página, para não piscar no tema errado -->
+    <script th:src="@{/js/tema.js}"></script>
     <link rel="icon" type="image/svg+xml" th:href="@{/img/favicon.svg}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap">
     <link rel="stylesheet" th:href="@{/css/estilo.css}">
-    <script th:src="@{/js/tema.js}" defer></script>
+    <!-- Confirmações e filtros automáticos: o HTML não tem JavaScript embutido (ver js/acoes.js) -->
+    <script th:src="@{/js/acoes.js}" defer></script>
 </head>
 
 <body>

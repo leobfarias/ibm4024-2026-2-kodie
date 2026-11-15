@@ -86,7 +86,8 @@ public class BackupController {
         }
         try {
             String nome = backupService.receberEnvio(arquivo.getBytes());
-            return "redirect:/backup/pagina/restaurar?arquivo=" + nome;
+            atributos.addAttribute("arquivo", nome);
+            return "redirect:/backup/pagina/restaurar";
         } catch (IllegalArgumentException e) {
             atributos.addFlashAttribute("erro", e.getMessage());
             return "redirect:/backup/pagina";
@@ -109,16 +110,20 @@ public class BackupController {
                             @RequestParam(defaultValue = "false") boolean confirmo,
                             HttpServletRequest requisicao,
                             RedirectAttributes atributos) {
+        // O nome volta para a URL por addAttribute, que o codifica. Colado direto
+        // na string do redirect, um nome forjado com "&", "#" ou "{" mudaria o endereco.
         if (!confirmo) {
             atributos.addFlashAttribute("erro", "Marque a confirmação para restaurar");
-            return "redirect:/backup/pagina/restaurar?arquivo=" + arquivo;
+            atributos.addAttribute("arquivo", arquivo);
+            return "redirect:/backup/pagina/restaurar";
         }
 
         try {
             backupService.restaurar(arquivo);
         } catch (IllegalArgumentException e) {
             atributos.addFlashAttribute("erro", e.getMessage());
-            return "redirect:/backup/pagina/restaurar?arquivo=" + arquivo;
+            atributos.addAttribute("arquivo", arquivo);
+            return "redirect:/backup/pagina/restaurar";
         }
 
         // Os usuarios agora sao os do backup: todo mundo entra de novo,
