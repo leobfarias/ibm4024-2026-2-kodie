@@ -107,7 +107,7 @@ consultam; apenas o administrador cadastra, altera e exclui.
 
 | Verbo | Caminho | Resposta |
 |---|---|---|
-| GET | `/ferias` | 200 · situação de todo o cadastro |
+| GET | `/ferias` | 200 · situação de quem tem vínculo (pessoas desligadas ficam de fora) |
 | GET | `/ferias/pessoa/{id}` | 200 · 404 se a pessoa não existir |
 
 ### Backup e exportação
@@ -127,13 +127,14 @@ consultam; apenas o administrador cadastra, altera e exclui.
 | `/inicio` | Resumo do dia: números, alertas de férias, ausentes, próximos 30 dias e atalhos |
 | `/pessoas/pagina` | Lista de pessoas, com busca e filtros, e formulário de cadastro |
 | `/pessoas/pagina/{id}` | Ficha individual: dados, vínculo, histórico de férias e ocorrências |
+| `/pessoas/pagina/{id}/editar` | Edição do cadastro, inclusive o desligamento (só administrador) |
 | `/ferias/painel` | Painel de férias: indicadores e tabela, com busca e filtros |
 | `/ocorrencias/pagina/nova` | Registro de ocorrência |
 | `/login` | Entrada no sistema |
 | `/usuarios/pagina` | Gestão de acessos (só administrador) |
 | `/conta/senha` | Troca da própria senha (os dois perfis) |
 | `/backup/pagina` | Backups, restauração e exportação (só administrador) |
-| `/calendario/pagina` | Calendário mensal de ocorrências, com filtro por tipo |
+| `/calendario/pagina` | Calendário mensal de ocorrências, com filtro por tipo; o administrador exclui ocorrências pela lista do mês |
 | `/indicadores/pagina` | Indicadores do cadastro: quadro, vínculos, férias, ocorrências, ausências |
 
 ### Interface
@@ -166,6 +167,13 @@ mesma informação aparece em lista abaixo da grade, legível em tela pequena.
 
 Como os demais módulos, o calendário é uma leitura derivada do cadastro central e não
 guarda nada próprio. Uma única consulta ao banco traz as ocorrências que tocam o mês.
+
+**Exclusão pela lista do mês.** O administrador vê um botão de excluir em cada linha da
+lista abaixo da grade, com pedido de confirmação. É a única tela que mostra as ocorrências
+sem pessoa vinculada, como feriados; sem ele, um feriado lançado em duplicidade não teria
+como ser apagado pelas telas. Depois de excluir, a tela volta para o mesmo mês e o mesmo
+filtro. O destino é montado só com o ano, o mês e o tipo, nunca com um endereço vindo do
+formulário, o que impede usar a exclusão para redirecionar alguém a outro site.
 
 ### Indicadores
 
@@ -282,6 +290,12 @@ era precisamente o defeito da alternativa descartada na seção 2.3.
 idempotente, quando a situação da pessoa é consultada. Consultar várias vezes não duplica
 nada.
 
+**Alterar a data de entrada, a data de saída ou o vínculo apaga os períodos da pessoa**, e
+eles são recriados na consulta seguinte. A sincronização só acrescenta períodos depois dos
+que já existem, então períodos calculados com a data antiga ficariam errados, e uma data
+de entrada movida para trás conflitaria com a restrição `uk_periodo_pessoa_inicio`.
+Apagar é seguro porque os períodos não guardam nada digitado: o saldo vem das ocorrências.
+
 ### Imputação dos dias gozados
 
 As férias gozadas abatem sempre do **período mais antigo com saldo**. A ordem importa: o
@@ -296,6 +310,12 @@ intacto justamente o saldo em risco e produziria um alerta falso.
 | **Próximo do vencimento** | Existe período com saldo vencendo dentro da antecedência configurada |
 | **Regular** | Nenhum prazo em risco |
 | **Sem regra CLT aplicável** | Vínculo MEI, PJ ou voluntário |
+
+**Pessoas desligadas ficam fora do painel**, e por consequência dos alertas da página
+inicial, dos indicadores de férias, da API `GET /ferias` e do CSV de férias. Elas não
+tiram mais férias; um saldo restante viraria um alerta de "vencido" que nunca se resolve
+e, com o tempo, esconderia os alertas que importam. A ficha da pessoa continua mostrando
+os períodos, como histórico.
 
 A antecedência do alerta é configurável em `application.properties`:
 
@@ -392,6 +412,7 @@ O perfil `prod` lê tudo de variáveis de ambiente. Nenhuma credencial fica no c
 | `DATABASE_PASSWORD` | — | sim |
 | `KODIE_ADMIN_SENHA` | — | sim, na primeira subida |
 | `KODIE_ADMIN_LOGIN` | `admin` | não |
+| `KODIE_EXIGIR_HTTPS` | `true` (padrão no perfil `prod`) | não; `false` só para rodar o perfil `prod` em `http://localhost` |
 | `PORT` | `8080` | não; a hospedagem costuma definir |
 
 `DATABASE_URL` precisa estar no **formato JDBC**. Alguns provedores entregam
@@ -549,8 +570,10 @@ segundo plano nunca vire o destino do login.
 
 Nunca armazenadas: o banco guarda apenas o hash **BCrypt**. O formulário de novo usuário
 é um objeto separado da entidade (`NovoUsuarioForm`), para que ninguém consiga enviar um
-`senhaHash` forjado. Senhas com no mínimo 8 caracteres, e não são devolvidas ao HTML
-quando o formulário volta com erro.
+`senhaHash` forjado. Senhas com no mínimo 8 caracteres e no máximo 72 bytes (o limite do
+BCrypt; cada letra acentuada ocupa 2), e não são devolvidas ao HTML quando o formulário
+volta com erro. **Senhas erradas repetidas bloqueiam o login temporariamente** (ver
+[Segurança](#segurança)).
 
 ### Regras de negócio dos acessos
 
@@ -575,6 +598,57 @@ ser sobrescritas por variáveis de ambiente:
 | `kodie.admin.nome` | `KODIE_ADMIN_NOME` | `Administrador` |
 
 Se o administrador for criado com a senha padrão, a aplicação registra um aviso no log.
+
+## Segurança
+
+O sistema guarda dados pessoais (CPF, e-mail, afastamentos).
+As proteções abaixo seguem as recomendações do **OWASP Top 10** e do **OWASP ASVS** e
+são verificadas pelos testes automatizados (`SegurancaTest`, `HttpsObrigatorioTest`).
+
+| Risco (OWASP Top 10) | Proteção | Onde |
+|---|---|---|
+| A01 · Controle de acesso | Toda rota exige login; só o administrador escreve. A regra vale no servidor, não só na tela | `SegurancaConfig` |
+| A01 · CSRF | Token em todo formulário. Pedido que o navegador marca como vindo de outro site (`Sec-Fetch-Site: cross-site`) nunca dispensa o token | `SegurancaConfig.semRiscoDeCsrf` |
+| A01 · Atribuição em massa | Formulários e API só gravam os campos previstos para cada operação | `PessoaService`, `OcorrenciaService`, `OcorrenciaWebController` |
+| A02 · Falhas de criptografia | Senhas em BCrypt. Em produção, HTTPS obrigatório, HSTS por um ano e cookie de sessão `Secure` | `SegurancaConfig`, `application-prod.properties` |
+| A03 · Injeção | Consultas parametrizadas (JPA); HTML escapado pelo Thymeleaf; CSV com proteção contra fórmula | repositórios, templates, `ExportacaoService` |
+| A03 · XSS | CSP com `script-src 'self'`: o navegador só executa scripts dos arquivos do sistema | `SegurancaConfig.POLITICA_DE_CONTEUDO` |
+| A05 · Configuração | Console do H2 desligado em produção; páginas de erro sem detalhes internos; cabeçalhos `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` | `application*.properties`, `SegurancaConfig` |
+| A06 · Componentes vulneráveis | Dependências na versão de correção mais recente disponível na data da entrega | `pom.xml` |
+| A07 · Autenticação | Bloqueio temporário após senhas erradas repetidas; mensagem igual para login inexistente e senha errada; sessão nova a cada login; sessões encerradas ao mudar o acesso | `TentativasDeLogin`, `UsuarioDetailsService` |
+| A08 · Integridade de dados | Backup enviado é lido como dados simples (sem desserialização de tipos arbitrários), validado por inteiro e gravado numa única transação | `BackupService` |
+| A09 · Registro de eventos | Bloqueios de login, backups e restaurações vão para o log | `TentativasDeLogin`, `BackupService` |
+
+### Bloqueio por senhas erradas
+
+Depois de uma sequência de senhas erradas para o mesmo login, ele fica bloqueado por
+alguns minutos: nesse intervalo nem a senha certa entra, pela tela ou pela API. A tela de
+login explica o motivo. Entrar com a senha certa zera a contagem. Logins que não existem
+recebem o mesmo tratamento, para que a resposta não revele quais logins são válidos.
+
+### Política de segurança de conteúdo (CSP)
+
+```
+default-src 'self'; script-src 'self';
+style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+font-src 'self' https://fonts.gstatic.com; img-src 'self';
+object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'
+```
+
+O navegador só executa scripts vindos de arquivos do próprio sistema. Por isso as telas
+não usam `onclick`, `onsubmit` nem `<script>` embutido: os comportamentos ficam em
+`static/js/acoes.js`, ligados por atributos (`data-confirmar`, `data-enviar-ao-mudar`,
+`data-voltar`). Um teste percorre todas as telas e falha se encontrar JavaScript embutido.
+O console do H2, que só existe em desenvolvimento, fica fora da CSP.
+
+### HTTPS em produção
+
+A hospedagem encerra o TLS e informa à aplicação, pelo cabeçalho `X-Forwarded-Proto`,
+se o pedido chegou por `http` ou `https` (`server.forward-headers-strategy=framework`).
+Com `kodie.seguranca.exigir-https=true`, padrão do perfil `prod`, quem chega por `http` é
+redirecionado para `https`, o navegador recebe o HSTS e o cookie de sessão ganha o
+atributo `Secure`. Para rodar o perfil `prod` numa máquina local, em `http://localhost`,
+defina `KODIE_EXIGIR_HTTPS=false`.
 
 ---
 
@@ -646,17 +720,40 @@ curl -i http://localhost:8080/pessoas
 curl -i -u consulta:consulta2026 -X DELETE http://localhost:8080/pessoas/1
 ```
 
+## Testes automatizados
+
+```bash
+./mvnw test
+```
+
+Os testes sobem a aplicação inteira com um banco H2 em memória próprio, sem tocar na
+pasta `dados/`, e fazem as requisições pelo mesmo caminho do navegador e da API (MockMvc).
+As datas são relativas ao dia em que o teste roda, para o resultado não mudar com o
+calendário.
+
+| Classe | O que garante |
+|---|---|
+| `KodieApplicationTests` | A aplicação sobe: migrações do Flyway aplicadas e entidades conferidas com as tabelas |
+| `PessoaEFeriasTest` | Corrigir a data de entrada recalcula os períodos de férias; pessoa desligada sai do painel; cadastro novo nunca sobrescreve outro; regra de negócio informa o campo do formulário |
+| `TelasTest` | Edição de pessoa (sucesso, erro no campo certo, perfil de consulta barrado); exclusão pelo calendário volta ao mesmo mês; erros de senha aparecem no campo certo; formulário de ocorrência aceita só os campos da ocorrência |
+| `SegurancaTest` | Quem pode o quê; CSRF; bloqueio após senhas erradas repetidas; cabeçalhos de segurança; nenhuma tela com JavaScript embutido |
+| `HttpsObrigatorioTest` | Com o perfil de produção, `http` é redirecionado para `https` e o HSTS é enviado |
+| `TentativasDeLoginTest` | Regras do bloqueio (limite, duração, contagem zerada), com um relógio controlado pelo teste |
+
 ---
 
 ## Tecnologias
 
-Java 25 · Spring Boot 4.1.1 · Spring Web · Spring Data JPA · Hibernate · Bean Validation ·
+Java 25 · Spring Boot 4.1.2 · Spring Web · Spring Data JPA · Hibernate · Bean Validation ·
 Spring Security · Thymeleaf · Flyway · H2 (desenvolvimento) · PostgreSQL (produção) · Maven.
 
 O front-end é HTML, CSS e Thymeleaf renderizado no servidor, sem framework de JavaScript
-e sem etapa de build de front-end. O único JavaScript próprio é o botão de tema
-(`static/js/tema.js`, 15 linhas). A única dependência externa é a fonte Inter, carregada do
-Google Fonts; sem ela, o navegador usa a fonte do sistema. A navegação lateral vive em um fragmento Thymeleaf
+e sem etapa de build de front-end. O JavaScript próprio são dois arquivos pequenos:
+`static/js/tema.js` (tema claro e escuro) e `static/js/acoes.js` (confirmações antes de
+excluir e filtros que se aplicam sozinhos). Nenhum template tem JavaScript embutido, por
+exigência da política de segurança de conteúdo (ver [Segurança](#segurança)). A única
+dependência externa é a fonte Sora, carregada do Google Fonts; sem ela, o navegador usa a
+fonte do sistema. A navegação lateral vive em um fragmento Thymeleaf
 (`templates/fragmentos/comum.html`) reutilizado por todas as telas, para não sair de
 sincronia entre elas.
 
